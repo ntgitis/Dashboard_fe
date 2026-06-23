@@ -22,6 +22,6 @@ export const products = Array.from({ length: 18 }).map((_, i) => ({
   category: categories[i % categories.length],
   price: 290000 + ((i * 137) % 9) * 150000,
   stock: [120, 0, 45, 8, 230, 17, 64, 3, 88][i % 9],
-  status: i % 7 === 0 ? "draft" : i % 5 === 0 ? "out" : "active",
+  status: i % 7 === 0 ? "INACTIVE" : i % 5 === 0 ? "LOW_STOCK" : "ACTIVE",
   image: productEmojis[i % productEmojis.length],
 }));

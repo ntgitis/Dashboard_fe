@@ -40,7 +40,7 @@ export default function ProductFilter({
               value={category}
               onChange={(e) => onCategoryChange(e.target.value)}
             >
-              <MenuItem value="">Tất cả</MenuItem>
+              <MenuItem value="all">Tất cả</MenuItem>
               {categories.map((item) => (
                 <MenuItem key={item} value={item}>
                   {item}
@@ -58,7 +58,7 @@ export default function ProductFilter({
               value={status}
               onChange={(e) => onStatusChange(e.target.value)}
             >
-              <MenuItem value="">Tất cả</MenuItem>
+              <MenuItem value="all">Tất cả</MenuItem>
               <MenuItem value="ACTIVE">Đang bán</MenuItem>
               <MenuItem value="INACTIVE">Ngừng bán</MenuItem>
               <MenuItem value="LOW_STOCK">Sắp hết hàng</MenuItem>
