@@ -4,7 +4,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  TextField,
+  DialogContentText,
 } from "@mui/material";
 
 export default function ConfirmDialog({
