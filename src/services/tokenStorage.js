@@ -1,5 +1,5 @@
-const ACCESS_TOKEN_KEY = "123456";
-const REFRESH_TOKEN_KEY = "123456";
+const ACCESS_TOKEN_KEY = "access_token";
+const REFRESH_TOKEN_KEY = "refresh_token";
 
 export function getAccessToken() {
   return localStorage.getItem(ACCESS_TOKEN_KEY);
