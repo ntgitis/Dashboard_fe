@@ -1,133 +1,60 @@
-import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Alert, Stack } from "@mui/material";
-import { useSnackbar } from "notistack";
+import {
+  Button,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  TextField,
+} from "@mui/material";
+import { USER_ROLE_OPTIONS } from "../customer.constants";
 
-import { PageHeader } from "@/components/common/PageHeader";
-import { getAdminUsers, updateAdminUserRole } from "@/services/adminUserApi";
-
-import CustomerFilter from "../components/CustomerFilter";
-import CustomerTable from "../components/CustomerTable";
-import CustomerDetailDialog from "../components/CustomerDetailDialog";
-
-const DEFAULT_PAGE = 0;
-const DEFAULT_ROWS_PER_PAGE = 10;
-
-function getApiErrorMessage(error) {
+export default function CustomerFilter({
+  keyword,
+  role,
+  onKeywordChange,
+  onRoleChange,
+  onReset,
+}) {
   return (
-    error?.response?.data?.message ||
-    error?.response?.data?.error ||
-    error?.message ||
-    "Có lỗi xảy ra"
-  );
-}
+    <Paper sx={{ p: 2, mb: 2 }}>
+      <Grid container spacing={2} alignItems="center">
+        <Grid item xs={12} md={6}>
+          <TextField
+            label="Tìm kiếm người dùng"
+            placeholder="Nhập ID, họ tên, email hoặc số điện thoại"
+            value={keyword}
+            onChange={(event) => onKeywordChange(event.target.value)}
+            fullWidth
+          />
+        </Grid>
 
-export default function AdminCustomersPage() {
-  const queryClient = useQueryClient();
-  const { enqueueSnackbar } = useSnackbar();
+        <Grid item xs={12} md={3}>
+          <FormControl fullWidth>
+            <InputLabel>Role</InputLabel>
+            <Select
+              label="Role"
+              value={role}
+              onChange={(event) => onRoleChange(event.target.value)}
+            >
+              <MenuItem value="all">Tất cả</MenuItem>
 
-  const [page, setPage] = useState(DEFAULT_PAGE);
-  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [nextRole, setNextRole] = useState("");
+              {USER_ROLE_OPTIONS.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
 
-  const usersQuery = useQuery({
-    queryKey: ["admin-users", { page, rowsPerPage }],
-    queryFn: () =>
-      getAdminUsers({
-        page,
-        size: rowsPerPage,
-      }),
-  });
-
-  const updateRoleMutation = useMutation({
-    mutationFn: ({ id, role }) => updateAdminUserRole(id, role),
-    onSuccess: () => {
-      enqueueSnackbar("Cập nhật role người dùng thành công", {
-        variant: "success",
-      });
-
-      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-      handleCloseDetail();
-    },
-    onError: (error) => {
-      enqueueSnackbar(getApiErrorMessage(error), { variant: "error" });
-    },
-  });
-
-  const usersPage = usersQuery.data || {
-    content: [],
-    totalElements: 0,
-    totalPages: 0,
-    number: page,
-    size: rowsPerPage,
-  };
-
-  const handlePageChange = (_, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleRowsPerPageChange = (event) => {
-    setRowsPerPage(Number(event.target.value));
-    setPage(DEFAULT_PAGE);
-  };
-
-  const handleOpenDetail = (user) => {
-    setSelectedUser(user);
-    setNextRole(user.role);
-  };
-
-  const handleCloseDetail = () => {
-    setSelectedUser(null);
-    setNextRole("");
-  };
-
-  const handleSaveRole = () => {
-    if (!selectedUser || nextRole === selectedUser.role) {
-      return;
-    }
-
-    updateRoleMutation.mutate({
-      id: selectedUser.id,
-      role: nextRole,
-    });
-  };
-
-  return (
-    <>
-      <Stack spacing={2}>
-        <PageHeader
-          title="Quản lý người dùng"
-          description="Quản lý danh sách người dùng theo API backend"
-        />
-
-        {usersQuery.isError && (
-          <Alert severity="error">{getApiErrorMessage(usersQuery.error)}</Alert>
-        )}
-
-        <CustomerFilter />
-
-        <CustomerTable
-          users={usersPage.content || []}
-          totalElements={usersPage.totalElements || 0}
-          page={page}
-          rowsPerPage={rowsPerPage}
-          loading={usersQuery.isLoading || usersQuery.isFetching}
-          onPageChange={handlePageChange}
-          onRowsPerPageChange={handleRowsPerPageChange}
-          onViewDetail={handleOpenDetail}
-        />
-      </Stack>
-
-      <CustomerDetailDialog
-        open={Boolean(selectedUser)}
-        user={selectedUser}
-        nextRole={nextRole}
-        onNextRoleChange={setNextRole}
-        onClose={handleCloseDetail}
-        onSaveRole={handleSaveRole}
-        saving={updateRoleMutation.isPending}
-      />
-    </>
+        <Grid item xs={12} md={3}>
+          <Button onClick={onReset} variant="outlined" fullWidth>
+            Đặt lại
+          </Button>
+        </Grid>
+      </Grid>
+    </Paper>
   );
 }

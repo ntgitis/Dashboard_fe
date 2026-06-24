@@ -70,7 +70,7 @@ export default function CustomerDetailDialog({
           </Typography>
 
           <Typography>
-            <strong>Email:</strong> {user.email}
+            <strong>Email:</strong> {user.email || "-"}
           </Typography>
 
           <Typography>

@@ -12,9 +12,6 @@ import CustomerDetailDialog from "../components/CustomerDetailDialog";
 
 const DEFAULT_PAGE = 0;
 const DEFAULT_ROWS_PER_PAGE = 10;
-
-// Vì backend chưa có search/filter users,
-// FE lấy số lượng lớn rồi filter/paginate ở client.
 const FETCH_USERS_SIZE = 1000;
 
 function getApiErrorMessage(error) {
@@ -60,10 +57,8 @@ export default function AdminCustomersPage() {
 
   const [keyword, setKeyword] = useState("");
   const [role, setRole] = useState("all");
-
   const [page, setPage] = useState(DEFAULT_PAGE);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
-
   const [selectedUser, setSelectedUser] = useState(null);
   const [nextRole, setNextRole] = useState("");
 
@@ -156,7 +151,7 @@ export default function AdminCustomersPage() {
     <>
       <Stack spacing={2}>
         <PageHeader
-          title="Quản lý người dùng"
+          title="Quản lý khách hàng"
           description="Quản lý danh sách người dùng theo API backend"
         />
 

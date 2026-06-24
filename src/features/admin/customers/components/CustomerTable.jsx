@@ -95,7 +95,7 @@ export default function CustomerTable({
                   <TableRow key={user.id} hover>
                     <TableCell>{user.id}</TableCell>
                     <TableCell>{user.fullName || "-"}</TableCell>
-                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.email || "-"}</TableCell>
                     <TableCell>{user.phone || "-"}</TableCell>
                     <TableCell>{formatDate(user.dob)}</TableCell>
                     <TableCell>{user.address || "-"}</TableCell>

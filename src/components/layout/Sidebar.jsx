@@ -41,18 +41,32 @@ const userItems = [
   { title: "Hồ sơ", url: "/user/profile", icon: PersonOutlineOutlined },
 ];
 
-export default function Sidebar({ role, onRoleChange }) {
+export default function Sidebar({ role }) {
   const items = role === "admin" ? adminItems : userItems;
 
   return (
-    <Box sx={{ width: 260, height: "100%", bgcolor: "background.paper" }}>
+    <Box
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        bgcolor: "background.paper",
+      }}
+    >
       <Box sx={{ p: 2.5 }}>
-        <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
-          <Avatar sx={{ bgcolor: "primary.main" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Avatar
+            sx={{
+              bgcolor: "primary.main",
+              width: 42,
+              height: 42,
+            }}
+          >
             <StorefrontOutlined />
           </Avatar>
+
           <Box>
-            <Typography variant="subtitle1" fontWeight={700}>
+            <Typography variant="h6" fontWeight={800} lineHeight={1.1}>
               Store Dashboard
             </Typography>
             <Typography variant="caption" color="text.secondary">
@@ -64,7 +78,7 @@ export default function Sidebar({ role, onRoleChange }) {
 
       <Divider />
 
-      <Box sx={{ p: 1.5 }}>
+      <Box sx={{ p: 1.5, flex: 1 }}>
         <Typography
           variant="overline"
           color="text.secondary"
@@ -86,7 +100,6 @@ export default function Sidebar({ role, onRoleChange }) {
                 sx={{
                   borderRadius: 2,
                   mb: 0.5,
-                  color: "text.secondary",
                   "&.active": {
                     bgcolor: "primary.main",
                     color: "primary.contrastText",
@@ -96,51 +109,16 @@ export default function Sidebar({ role, onRoleChange }) {
                   },
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 38, color: "inherit" }}>
+                <ListItemIcon sx={{ minWidth: 40 }}>
                   <Icon fontSize="small" />
                 </ListItemIcon>
+
                 <ListItemText primary={item.title} />
               </ListItemButton>
             );
           })}
         </List>
       </Box>
-
-      {/* <Divider />
-
-      <Box sx={{ p: 1.5 }}>
-        <Typography
-          variant="overline"
-          color="text.secondary"
-          sx={{ px: 1.5, fontWeight: 700 }}
-        >
-          Chuyển khu vực
-        </Typography>
-
-        <List dense sx={{ mt: 0.5 }}>
-          <ListItemButton
-            selected={role === "admin"}
-            onClick={() => onRoleChange("admin")}
-            sx={{ borderRadius: 2, mb: 0.5 }}
-          >
-            <ListItemIcon sx={{ minWidth: 38 }}>
-              <DashboardOutlined fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Admin" />
-          </ListItemButton>
-
-          <ListItemButton
-            selected={role === "user"}
-            onClick={() => onRoleChange("user")}
-            sx={{ borderRadius: 2 }}
-          >
-            <ListItemIcon sx={{ minWidth: 38 }}>
-              <PersonOutlineOutlined fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Khách hàng" />
-          </ListItemButton>
-        </List>
-      </Box> */}
     </Box>
   );
 }
