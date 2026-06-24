@@ -15,20 +15,29 @@ import { StatusChip } from "@/components/common/StatusChip";
 import { formatVnd } from "@/utils/formatters";
 import { canCancelOrder } from "../userOrder.constants";
 
+function formatDateTime(value) {
+  if (!value) return "-";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString("vi-VN");
+}
+
 export default function UserOrderTable({
   orders = [],
+  totalElements = 0,
   page = 0,
   rowsPerPage = 10,
+  loading = false,
   onPageChange,
   onRowsPerPageChange,
   onViewDetail,
   onRequestCancel,
 }) {
-  const visibleOrders = orders.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage,
-  );
-
   return (
     <Paper>
       <TableContainer>
@@ -37,38 +46,44 @@ export default function UserOrderTable({
             <TableRow>
               <TableCell>Mã đơn</TableCell>
               <TableCell>Ngày đặt</TableCell>
-              <TableCell>Sản phẩm</TableCell>
+              <TableCell>Số sản phẩm</TableCell>
               <TableCell>Tổng tiền</TableCell>
+              <TableCell>Địa chỉ giao hàng</TableCell>
               <TableCell>Trạng thái</TableCell>
-              <TableCell align="right">Thao tác</TableCell>
+              <TableCell>Thao tác</TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {visibleOrders.length === 0 ? (
+            {loading ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
-                  <Typography color="text.secondary" sx={{ py: 3 }}>
+                <TableCell colSpan={7}>
+                  <Typography py={3} align="center" color="text.secondary">
+                    Đang tải đơn hàng...
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : orders.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7}>
+                  <Typography py={3} align="center" color="text.secondary">
                     Không có đơn hàng phù hợp
                   </Typography>
                 </TableCell>
               </TableRow>
             ) : (
-              visibleOrders.map((order) => (
+              orders.map((order) => (
                 <TableRow key={order.id} hover>
                   <TableCell>{order.id}</TableCell>
-                  <TableCell>{order.date}</TableCell>
-                  <TableCell>{order.items}</TableCell>
-                  <TableCell>{formatVnd(order.total)}</TableCell>
+                  <TableCell>{formatDateTime(order.createdAt)}</TableCell>
+                  <TableCell>{order.items?.length || 0}</TableCell>
+                  <TableCell>{formatVnd(order.totalAmount || 0)}</TableCell>
+                  <TableCell>{order.shippingAddress || "-"}</TableCell>
                   <TableCell>
                     <StatusChip status={order.status} />
                   </TableCell>
-                  <TableCell align="right">
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      justifyContent="flex-end"
-                    >
+                  <TableCell>
+                    <Stack direction="row" spacing={1}>
                       <Button size="small" onClick={() => onViewDetail(order)}>
                         Chi tiết
                       </Button>
@@ -93,12 +108,12 @@ export default function UserOrderTable({
 
       <TablePagination
         component="div"
-        count={orders.length}
+        count={totalElements}
         page={page}
         rowsPerPage={rowsPerPage}
         onPageChange={onPageChange}
         onRowsPerPageChange={onRowsPerPageChange}
-        rowsPerPageOptions={[5, 10, 25]}
+        rowsPerPageOptions={[5, 10, 20, 50]}
         labelRowsPerPage="Số dòng mỗi trang"
       />
     </Paper>

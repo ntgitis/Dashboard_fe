@@ -1,58 +1,26 @@
-import {
-  Button,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Paper,
-  Select,
-  Stack,
-  TextField,
-} from "@mui/material";
+import { Button, Paper, Stack, TextField } from "@mui/material";
 
-export default function WishlistFilter({
-  keyword,
-  category,
-  categories = [],
-  onKeywordChange,
-  onCategoryChange,
-  onReset,
-}) {
+export default function WishlistFilter({ keyword, onKeywordChange, onReset }) {
   return (
-    <Paper sx={{ p: 2 }}>
-      <Stack
-        direction={{ xs: "column", md: "row" }}
-        spacing={2}
-        alignItems={{ xs: "stretch", md: "center" }}
-      >
+    <Paper sx={{ p: 2, mb: 2 }}>
+      <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
         <TextField
-          label="Tìm kiếm sản phẩm"
-          placeholder="Tên sản phẩm, SKU..."
+          label="Tìm kiếm sản phẩm yêu thích"
+          placeholder="Nhập tên sản phẩm"
           value={keyword}
           onChange={(event) => onKeywordChange(event.target.value)}
           fullWidth
         />
 
-        <FormControl sx={{ minWidth: { xs: "100%", md: 220 } }}>
-          <InputLabel>Danh mục</InputLabel>
-          <Select
-            label="Danh mục"
-            value={category}
-            onChange={(event) => onCategoryChange(event.target.value)}
-          >
-            <MenuItem value="all">Tất cả</MenuItem>
-
-            {categories.map((item) => (
-              <MenuItem key={item} value={item}>
-                {item}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
         <Button
-          variant="outlined"
           onClick={onReset}
-          sx={{ minWidth: 120, height: 56 }}
+          variant="outlined"
+          sx={{
+            height: 40,
+            minWidth: 96,
+            px: 2.5,
+            whiteSpace: "nowrap",
+          }}
         >
           Đặt lại
         </Button>

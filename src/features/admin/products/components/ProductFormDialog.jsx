@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  Alert,
   Button,
   Dialog,
   DialogActions,
@@ -41,7 +42,6 @@ function getInitialFormData(editingProduct) {
 function ProductFormContent({
   editingProduct,
   categories = [],
-  existingProducts = [],
   onClose,
   onSubmit,
   submitting = false,
@@ -55,62 +55,47 @@ function ProductFormContent({
   const [errors, setErrors] = useState({});
 
   const handleChange = (field) => (event) => {
-    setFormData((prev) => ({
-      ...prev,
+    setFormData((currentData) => ({
+      ...currentData,
       [field]: event.target.value,
     }));
 
-    setErrors((prev) => ({
-      ...prev,
+    setErrors((currentErrors) => ({
+      ...currentErrors,
       [field]: "",
     }));
   };
 
   const validateForm = () => {
-    const newErrors = {};
+    const nextErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = "Tên sản phẩm không được để trống";
-    }
-
-    if (formData.sku.trim()) {
-      const isDuplicateSku = existingProducts.some((product) => {
-        const sameSku =
-          product.sku?.toLowerCase() === formData.sku.trim().toLowerCase();
-
-        const differentProduct = product.id !== editingProduct?.id;
-
-        return sameSku && differentProduct;
-      });
-
-      if (isDuplicateSku) {
-        newErrors.sku = "SKU đã tồn tại";
-      }
+      nextErrors.name = "Tên sản phẩm không được để trống";
     }
 
     if (!formData.categoryId) {
-      newErrors.categoryId = "Vui lòng chọn danh mục";
+      nextErrors.categoryId = "Vui lòng chọn danh mục";
     }
 
     const priceNumber = Number(formData.price);
 
     if (formData.price === "") {
-      newErrors.price = "Giá bán không được để trống";
+      nextErrors.price = "Giá bán không được để trống";
     } else if (!Number.isFinite(priceNumber) || priceNumber <= 0) {
-      newErrors.price = "Giá bán phải lớn hơn 0";
+      nextErrors.price = "Giá bán phải lớn hơn 0";
     }
 
     const stockNumber = Number(formData.stock);
 
     if (formData.stock === "") {
-      newErrors.stock = "Tồn kho không được để trống";
+      nextErrors.stock = "Tồn kho không được để trống";
     } else if (!Number.isInteger(stockNumber) || stockNumber < 0) {
-      newErrors.stock = "Tồn kho phải là số nguyên không âm";
+      nextErrors.stock = "Tồn kho phải là số nguyên không âm";
     }
 
-    setErrors(newErrors);
+    setErrors(nextErrors);
 
-    return Object.keys(newErrors).length === 0;
+    return Object.keys(nextErrors).length === 0;
   };
 
   const handleSubmit = () => {
@@ -138,7 +123,7 @@ function ProductFormContent({
       </DialogTitle>
 
       <DialogContent>
-        <Stack spacing={2} sx={{ mt: 1, minWidth: 420 }}>
+        <Stack spacing={2} sx={{ pt: 1 }}>
           <TextField
             label="Tên sản phẩm"
             value={formData.name}
@@ -147,18 +132,29 @@ function ProductFormContent({
             helperText={errors.name}
             fullWidth
             required
+            disabled={submitting}
+          />
+
+          <TextField
+            label="Mô tả"
+            value={formData.description}
+            onChange={handleChange("description")}
+            fullWidth
+            multiline
+            minRows={3}
+            disabled={submitting}
           />
 
           <TextField
             label="SKU"
             value={formData.sku}
             onChange={handleChange("sku")}
-            error={Boolean(errors.sku)}
-            helperText={errors.sku || "Có thể để trống nếu backend tự quản lý"}
             fullWidth
+            disabled={submitting}
           />
 
           <TextField
+            select
             label="Danh mục"
             value={formData.categoryId}
             onChange={handleChange("categoryId")}
@@ -166,7 +162,7 @@ function ProductFormContent({
             helperText={errors.categoryId}
             fullWidth
             required
-            select
+            disabled={submitting || categories.length === 0}
           >
             {categories.map((category) => (
               <MenuItem key={category.id} value={String(category.id)}>
@@ -184,6 +180,11 @@ function ProductFormContent({
             helperText={errors.price}
             fullWidth
             required
+            disabled={submitting}
+            inputProps={{
+              min: 1,
+              step: 1000,
+            }}
           />
 
           <TextField
@@ -195,23 +196,19 @@ function ProductFormContent({
             helperText={errors.stock}
             fullWidth
             required
+            disabled={submitting}
+            inputProps={{
+              min: 0,
+              step: 1,
+            }}
           />
 
           <TextField
-            label="Ảnh sản phẩm"
+            label="URL hình ảnh"
             value={formData.imageUrl}
             onChange={handleChange("imageUrl")}
             fullWidth
-            placeholder="https://..."
-          />
-
-          <TextField
-            label="Mô tả"
-            value={formData.description}
-            onChange={handleChange("description")}
-            fullWidth
-            multiline
-            minRows={3}
+            disabled={submitting}
           />
         </Stack>
       </DialogContent>
@@ -224,7 +221,7 @@ function ProductFormContent({
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={submitting}
+          disabled={submitting || categories.length === 0}
         >
           {submitting
             ? "Đang lưu..."
@@ -241,7 +238,6 @@ export default function ProductFormDialog({
   open,
   editingProduct,
   categories = [],
-  existingProducts = [],
   onClose,
   onSubmit,
   submitting = false,
@@ -258,7 +254,6 @@ export default function ProductFormDialog({
         key={formKey}
         editingProduct={editingProduct}
         categories={categories}
-        existingProducts={existingProducts}
         onClose={onClose}
         onSubmit={onSubmit}
         submitting={submitting}

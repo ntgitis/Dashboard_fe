@@ -1,21 +1,28 @@
 import { httpClient } from "./httpClient";
 
+function normalizeOptionalString(value) {
+  const normalizedValue = String(value ?? "").trim();
+  return normalizedValue || "";
+}
+
 function cleanProductPayload(payload) {
   return {
-    name: payload.name?.trim(),
-    description: payload.description?.trim() || "",
+    name: normalizeOptionalString(payload.name),
+    description: normalizeOptionalString(payload.description),
     price: Number(payload.price),
     stock: Number(payload.stock),
-    imageUrl: payload.imageUrl?.trim() || "",
-    sku: payload.sku?.trim() || "",
+    imageUrl: normalizeOptionalString(payload.imageUrl),
+    sku: normalizeOptionalString(payload.sku),
     categoryId: Number(payload.categoryId),
   };
 }
 
 export async function getAdminProducts(params = {}) {
+  const search = String(params.search ?? "").trim();
+
   return httpClient.get("/admin/products", {
     params: {
-      search: params.search || undefined,
+      search: search || undefined,
       categoryId: params.categoryId || undefined,
       minPrice: params.minPrice || undefined,
       maxPrice: params.maxPrice || undefined,

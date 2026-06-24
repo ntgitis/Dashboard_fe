@@ -22,9 +22,10 @@ export default function ProductFilter({
   return (
     <Paper sx={{ p: 2, mb: 2 }}>
       <Grid container spacing={2} alignItems="center">
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={5}>
           <TextField
             label="Tìm kiếm sản phẩm"
+            placeholder="Nhập tên, mô tả hoặc SKU"
             value={keyword}
             onChange={(event) => onKeywordChange(event.target.value)}
             fullWidth
@@ -50,7 +51,7 @@ export default function ProductFilter({
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} md={3}>
+        <Grid item xs={12} md={2}>
           <FormControl fullWidth>
             <InputLabel>Trạng thái</InputLabel>
             <Select
@@ -65,8 +66,27 @@ export default function ProductFilter({
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} md={3}>
-          <Button onClick={onReset} fullWidth variant="outlined">
+        <Grid
+          item
+          xs={12}
+          md="auto"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <Button
+            onClick={onReset}
+            variant="outlined"
+            size="medium"
+            sx={{
+              height: 40,
+              minWidth: 96,
+              px: 2.5,
+              whiteSpace: "nowrap",
+              width: { xs: "100%", md: "auto" },
+            }}
+          >
             Đặt lại
           </Button>
         </Grid>

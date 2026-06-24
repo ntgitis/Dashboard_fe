@@ -1,214 +1,207 @@
-// import {
-//   Box,
-//   Button,
-//   Card,
-//   CardContent,
-//   CardMedia,
-//   IconButton,
-//   Stack,
-//   Typography,
-// } from "@mui/material";
-// import FavoriteIcon from "@mui/icons-material/Favorite";
-// import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
-// import { PageHeader } from "@/components/common/PageHeader";
-// import { products } from "@/mocks";
-// import { formatVnd } from "@/utils/formatters";
-
-// export default function UserWishlistPage() {
-//   const list = products.slice(0, 8);
-
-//   return (
-//     <>
-//       <PageHeader
-//         title="Yêu thích"
-//         description={`${list.length} sản phẩm bạn đã lưu.`}
-//       />
-
-//       <Box
-//         sx={{
-//           display: "grid",
-//           gridTemplateColumns: {
-//             xs: "repeat(2, 1fr)",
-//             md: "repeat(3, 1fr)",
-//             xl: "repeat(4, 1fr)",
-//           },
-//           gap: 2,
-//         }}
-//       >
-//         {list.map((product) => (
-//           <Card key={product.id}>
-//             <CardMedia
-//               sx={{
-//                 height: 150,
-//                 display: "flex",
-//                 alignItems: "center",
-//                 justifyContent: "center",
-//                 bgcolor: "grey.100",
-//                 fontSize: 56,
-//               }}
-//             >
-//               {product.image}
-//             </CardMedia>
-//             <CardContent>
-//               <Typography variant="caption" color="text.secondary">
-//                 {product.category}
-//               </Typography>
-//               <Typography fontWeight={700} noWrap>
-//                 {product.name}
-//               </Typography>
-
-//               <Stack
-//                 direction="row"
-//                 alignItems="center"
-//                 justifyContent="space-between"
-//                 sx={{ mt: 1.5 }}
-//               >
-//                 <Typography fontWeight={700}>
-//                   {formatVnd(product.price)}
-//                 </Typography>
-//                 <Stack direction="row" spacing={0.5}>
-//                   <IconButton size="small" color="error">
-//                     <FavoriteIcon fontSize="small" />
-//                   </IconButton>
-//                   <IconButton size="small" color="primary">
-//                     <ShoppingCartOutlinedIcon fontSize="small" />
-//                   </IconButton>
-//                 </Stack>
-//               </Stack>
-//             </CardContent>
-//           </Card>
-//         ))}
-//       </Box>
-//     </>
-//   );
-// }
-
 import { useMemo, useState } from "react";
-import { Box, Grid, Stack, Typography } from "@mui/material";
+import { Box, Button, Grid, Stack, Typography } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteSweepOutlinedIcon from "@mui/icons-material/DeleteSweepOutlined";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSnackbar } from "notistack";
+
 import { PageHeader } from "@/components/common/PageHeader";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import {
-  products as productMocks,
-  categories as mockCategories,
-} from "@/mocks";
+  addWishlistItem,
+  clearWishlist,
+  getWishlist,
+  removeWishlistItem,
+} from "@/services/wishlistApi";
+
 import WishlistFilter from "../components/WishlistFilter";
 import WishlistCard from "../components/WishlistCard";
+import WishlistAddDialog from "../components/WishlistAddDialog";
+
+function getApiErrorMessage(error) {
+  return (
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    "Có lỗi xảy ra"
+  );
+}
+
+function normalizeText(value) {
+  return String(value ?? "")
+    .toLowerCase()
+    .trim();
+}
 
 export default function UserWishlistPage() {
+  const queryClient = useQueryClient();
   const { enqueueSnackbar } = useSnackbar();
 
-  const [items, setItems] = useState(productMocks.slice(0, 8));
   const [keyword, setKeyword] = useState("");
-  const [category, setCategory] = useState("all");
-  const [removingProduct, setRemovingProduct] = useState(null);
+  const [openAddDialog, setOpenAddDialog] = useState(false);
+  const [removingItem, setRemovingItem] = useState(null);
+  const [confirmClear, setConfirmClear] = useState(false);
 
-  const filteredProducts = useMemo(() => {
-    const lowerKeyword = keyword.trim().toLowerCase();
+  const wishlistQuery = useQuery({
+    queryKey: ["wishlist"],
+    queryFn: getWishlist,
+  });
 
-    return items.filter((product) => {
-      const matchKeyword =
-        !lowerKeyword ||
-        product.name.toLowerCase().includes(lowerKeyword) ||
-        product.sku.toLowerCase().includes(lowerKeyword);
+  const addMutation = useMutation({
+    mutationFn: (product) => addWishlistItem(product.id),
+    onSuccess: () => {
+      enqueueSnackbar("Đã thêm sản phẩm vào yêu thích", {
+        variant: "success",
+      });
 
-      const matchCategory = category === "all" || product.category === category;
+      queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+    },
+    onError: (error) => {
+      enqueueSnackbar(getApiErrorMessage(error), {
+        variant: "error",
+      });
+    },
+  });
 
-      return matchKeyword && matchCategory;
-    });
-  }, [items, keyword, category]);
+  const removeMutation = useMutation({
+    mutationFn: removeWishlistItem,
+    onSuccess: () => {
+      enqueueSnackbar("Đã xoá sản phẩm khỏi yêu thích", {
+        variant: "info",
+      });
 
-  const handleKeywordChange = (value) => {
-    setKeyword(value);
-  };
+      queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      setRemovingItem(null);
+    },
+    onError: (error) => {
+      enqueueSnackbar(getApiErrorMessage(error), {
+        variant: "error",
+      });
+    },
+  });
 
-  const handleCategoryChange = (value) => {
-    setCategory(value);
-  };
+  const clearMutation = useMutation({
+    mutationFn: clearWishlist,
+    onSuccess: () => {
+      enqueueSnackbar("Đã xoá toàn bộ wishlist", {
+        variant: "info",
+      });
 
-  const handleResetFilter = () => {
-    setKeyword("");
-    setCategory("all");
-  };
+      queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      setConfirmClear(false);
+    },
+    onError: (error) => {
+      enqueueSnackbar(getApiErrorMessage(error), {
+        variant: "error",
+      });
+    },
+  });
 
-  const handleAddToCart = (product) => {
-    enqueueSnackbar(`Đã thêm "${product.name}" vào giỏ hàng`, {
-      variant: "success",
-    });
-  };
+  const items = wishlistQuery.data?.items || [];
 
-  const handleRequestRemove = (product) => {
-    setRemovingProduct(product);
-  };
+  const filteredItems = useMemo(() => {
+    const normalizedKeyword = normalizeText(keyword);
 
-  const handleConfirmRemove = () => {
-    if (!removingProduct) return;
+    if (!normalizedKeyword) {
+      return items;
+    }
 
-    setItems((prev) =>
-      prev.filter((product) => product.id !== removingProduct.id),
+    return items.filter((item) =>
+      normalizeText(item.productName).includes(normalizedKeyword),
     );
+  }, [items, keyword]);
 
-    enqueueSnackbar(`Đã xoá "${removingProduct.name}" khỏi yêu thích`, {
-      variant: "info",
-    });
-
-    setRemovingProduct(null);
-  };
+  const existingProductIds = items.map((item) => item.productId);
 
   return (
     <>
-      <PageHeader title="Sản phẩm yêu thích" />
+      <PageHeader
+        title="Yêu thích"
+        description="Quản lý sản phẩm yêu thích từ backend"
+        actions={
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteSweepOutlinedIcon />}
+              onClick={() => setConfirmClear(true)}
+              disabled={items.length === 0}
+            >
+              Xoá tất cả
+            </Button>
 
-      <Stack spacing={3}>
-        <WishlistFilter
-          keyword={keyword}
-          category={category}
-          categories={mockCategories}
-          onKeywordChange={handleKeywordChange}
-          onCategoryChange={handleCategoryChange}
-          onReset={handleResetFilter}
-        />
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setOpenAddDialog(true)}
+            >
+              Thêm sản phẩm
+            </Button>
+          </Stack>
+        }
+      />
 
-        {filteredProducts.length === 0 ? (
-          <Box
-            sx={{
-              py: 8,
-              textAlign: "center",
-              bgcolor: "background.paper",
-              borderRadius: 2,
-            }}
-          >
-            <Typography fontWeight={700}>
-              Không có sản phẩm yêu thích phù hợp
-            </Typography>
+      <WishlistFilter
+        keyword={keyword}
+        onKeywordChange={setKeyword}
+        onReset={() => setKeyword("")}
+      />
 
-            <Typography color="text.secondary" variant="body2" sx={{ mt: 1 }}>
-              Hãy thử đổi từ khoá tìm kiếm hoặc đặt lại bộ lọc.
-            </Typography>
-          </Box>
-        ) : (
-          <Grid container spacing={3}>
-            {filteredProducts.map((product) => (
-              <Grid key={product.id} item xs={12} sm={6} md={4} lg={3}>
-                <WishlistCard
-                  product={product}
-                  onAddToCart={handleAddToCart}
-                  onRemove={handleRequestRemove}
-                />
-              </Grid>
-            ))}
-          </Grid>
-        )}
-      </Stack>
+      {wishlistQuery.isLoading ? (
+        <Typography color="text.secondary">Đang tải wishlist...</Typography>
+      ) : filteredItems.length === 0 ? (
+        <Box textAlign="center" py={6}>
+          <Typography color="text.secondary">
+            Không có sản phẩm yêu thích phù hợp
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Hãy thêm sản phẩm hoặc thử đổi từ khoá tìm kiếm.
+          </Typography>
+        </Box>
+      ) : (
+        <Grid container spacing={2}>
+          {filteredItems.map((item) => (
+            <Grid item xs={12} sm={6} md={4} xl={3} key={item.id}>
+              <WishlistCard item={item} onRemove={setRemovingItem} />
+            </Grid>
+          ))}
+        </Grid>
+      )}
+
+      <WishlistAddDialog
+        open={openAddDialog}
+        existingProductIds={existingProductIds}
+        onClose={() => setOpenAddDialog(false)}
+        onAdd={(product) => addMutation.mutate(product)}
+        adding={addMutation.isPending}
+      />
 
       <ConfirmDialog
-        open={Boolean(removingProduct)}
+        open={Boolean(removingItem)}
         title="Xoá khỏi yêu thích"
-        message={`Bạn có chắc muốn xoá "${removingProduct?.name}" khỏi danh sách yêu thích không?`}
-        confirmText="Xoá"
+        message={
+          removingItem
+            ? `Bạn có chắc muốn xoá "${removingItem.productName}" khỏi wishlist?`
+            : ""
+        }
+        confirmText={removeMutation.isPending ? "Đang xoá..." : "Xoá"}
         cancelText="Huỷ"
-        onClose={() => setRemovingProduct(null)}
-        onConfirm={handleConfirmRemove}
+        onClose={() => setRemovingItem(null)}
+        onConfirm={() => {
+          if (removingItem?.productId) {
+            removeMutation.mutate(removingItem.productId);
+          }
+        }}
+      />
+
+      <ConfirmDialog
+        open={confirmClear}
+        title="Xoá toàn bộ wishlist"
+        message="Bạn có chắc muốn xoá toàn bộ sản phẩm yêu thích?"
+        confirmText={clearMutation.isPending ? "Đang xoá..." : "Xoá tất cả"}
+        cancelText="Huỷ"
+        onClose={() => setConfirmClear(false)}
+        onConfirm={() => clearMutation.mutate()}
       />
     </>
   );

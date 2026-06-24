@@ -11,25 +11,27 @@ import {
   TextField,
 } from "@mui/material";
 
-const emptyForm = {
+const EMPTY_FORM = {
   label: "",
-  name: "",
-  phone: "",
-  line: "",
-  default: false,
+  street: "",
+  city: "",
+  province: "",
+  postalCode: "",
+  isDefault: false,
 };
 
 function getInitialForm(editingAddress) {
   if (!editingAddress) {
-    return emptyForm;
+    return EMPTY_FORM;
   }
 
   return {
     label: editingAddress.label || "",
-    name: editingAddress.name || "",
-    phone: editingAddress.phone || "",
-    line: editingAddress.line || "",
-    default: Boolean(editingAddress.default),
+    street: editingAddress.street || "",
+    city: editingAddress.city || "",
+    province: editingAddress.province || "",
+    postalCode: editingAddress.postalCode || "",
+    isDefault: Boolean(editingAddress.isDefault),
   };
 }
 
@@ -38,6 +40,7 @@ function AddressFormContent({
   initialValues,
   onClose,
   onSubmit,
+  submitting = false,
 }) {
   const [form, setForm] = useState(() => initialValues);
   const [errors, setErrors] = useState({});
@@ -62,20 +65,12 @@ function AddressFormContent({
   const validate = () => {
     const nextErrors = {};
 
-    if (!form.label.trim()) {
-      nextErrors.label = "Tên địa chỉ không được để trống";
+    if (!form.street.trim()) {
+      nextErrors.street = "Địa chỉ đường phố không được để trống";
     }
 
-    if (!form.name.trim()) {
-      nextErrors.name = "Tên người nhận không được để trống";
-    }
-
-    if (!form.phone.trim()) {
-      nextErrors.phone = "Số điện thoại không được để trống";
-    }
-
-    if (!form.line.trim()) {
-      nextErrors.line = "Địa chỉ không được để trống";
+    if (!form.city.trim()) {
+      nextErrors.city = "Thành phố không được để trống";
     }
 
     setErrors(nextErrors);
@@ -84,15 +79,17 @@ function AddressFormContent({
   };
 
   const handleSubmit = () => {
-    if (!validate()) return;
+    if (!validate()) {
+      return;
+    }
 
     onSubmit({
-      ...editingAddress,
-      ...form,
       label: form.label.trim(),
-      name: form.name.trim(),
-      phone: form.phone.trim(),
-      line: form.line.trim(),
+      street: form.street.trim(),
+      city: form.city.trim(),
+      province: form.province.trim(),
+      postalCode: form.postalCode.trim(),
+      isDefault: Boolean(form.isDefault),
     });
   };
 
@@ -103,51 +100,60 @@ function AddressFormContent({
       </DialogTitle>
 
       <DialogContent>
-        <Stack spacing={2} sx={{ mt: 1 }}>
+        <Stack spacing={2} sx={{ pt: 1 }}>
           <TextField
-            label="Tên địa chỉ"
-            placeholder="Ví dụ: Nhà riêng, Văn phòng..."
+            label="Nhãn địa chỉ"
+            placeholder="Ví dụ: Nhà riêng, Công ty"
             value={form.label}
             onChange={handleChange("label")}
-            error={Boolean(errors.label)}
-            helperText={errors.label}
             fullWidth
+            disabled={submitting}
           />
 
           <TextField
-            label="Người nhận"
-            value={form.name}
-            onChange={handleChange("name")}
-            error={Boolean(errors.name)}
-            helperText={errors.name}
+            label="Địa chỉ đường phố"
+            value={form.street}
+            onChange={handleChange("street")}
+            error={Boolean(errors.street)}
+            helperText={errors.street}
             fullWidth
+            required
+            disabled={submitting}
           />
 
           <TextField
-            label="Số điện thoại"
-            value={form.phone}
-            onChange={handleChange("phone")}
-            error={Boolean(errors.phone)}
-            helperText={errors.phone}
+            label="Thành phố"
+            value={form.city}
+            onChange={handleChange("city")}
+            error={Boolean(errors.city)}
+            helperText={errors.city}
             fullWidth
+            required
+            disabled={submitting}
           />
 
           <TextField
-            label="Địa chỉ"
-            value={form.line}
-            onChange={handleChange("line")}
-            error={Boolean(errors.line)}
-            helperText={errors.line}
-            multiline
-            minRows={3}
+            label="Tỉnh / Bang"
+            value={form.province}
+            onChange={handleChange("province")}
             fullWidth
+            disabled={submitting}
+          />
+
+          <TextField
+            label="Mã bưu điện"
+            value={form.postalCode}
+            onChange={handleChange("postalCode")}
+            fullWidth
+            disabled={submitting}
           />
 
           <FormControlLabel
             control={
               <Checkbox
-                checked={form.default}
-                onChange={handleChange("default")}
+                checked={form.isDefault}
+                onChange={handleChange("isDefault")}
+                disabled={submitting}
               />
             }
             label="Đặt làm địa chỉ mặc định"
@@ -156,9 +162,20 @@ function AddressFormContent({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Huỷ</Button>
-        <Button variant="contained" onClick={handleSubmit}>
-          {editingAddress ? "Lưu thay đổi" : "Thêm địa chỉ"}
+        <Button onClick={onClose} disabled={submitting}>
+          Huỷ
+        </Button>
+
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          disabled={submitting}
+        >
+          {submitting
+            ? "Đang lưu..."
+            : editingAddress
+              ? "Lưu thay đổi"
+              : "Thêm địa chỉ"}
         </Button>
       </DialogActions>
     </>
@@ -170,6 +187,7 @@ export default function AddressFormDialog({
   editingAddress,
   onClose,
   onSubmit,
+  submitting = false,
 }) {
   if (!open) {
     return null;
@@ -179,13 +197,14 @@ export default function AddressFormDialog({
   const formKey = editingAddress?.id || "create";
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <AddressFormContent
         key={formKey}
         editingAddress={editingAddress}
         initialValues={initialValues}
         onClose={onClose}
         onSubmit={onSubmit}
+        submitting={submitting}
       />
     </Dialog>
   );

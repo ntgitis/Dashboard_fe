@@ -37,12 +37,13 @@ export default function AdminProductsPage() {
   const [keyword, setKeyword] = useState("");
   const [categoryId, setCategoryId] = useState("all");
   const [active, setActive] = useState("all");
+
   const [page, setPage] = useState(DEFAULT_PAGE);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
 
+  const [openForm, setOpenForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [deletingProduct, setDeletingProduct] = useState(null);
-  const [openForm, setOpenForm] = useState(false);
 
   const productsQuery = useQuery({
     queryKey: [
@@ -57,7 +58,7 @@ export default function AdminProductsPage() {
     ],
     queryFn: () =>
       getAdminProducts({
-        search: keyword.trim(),
+        search: keyword,
         categoryId: categoryId === "all" ? undefined : Number(categoryId),
         active: active === "all" ? undefined : active === "true",
         page,
@@ -73,37 +74,52 @@ export default function AdminProductsPage() {
   const createProductMutation = useMutation({
     mutationFn: createProduct,
     onSuccess: () => {
-      enqueueSnackbar("Thêm sản phẩm thành công", { variant: "success" });
+      enqueueSnackbar("Thêm sản phẩm thành công", {
+        variant: "success",
+      });
+
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       handleCloseForm();
       setPage(DEFAULT_PAGE);
     },
     onError: (error) => {
-      enqueueSnackbar(getApiErrorMessage(error), { variant: "error" });
+      enqueueSnackbar(getApiErrorMessage(error), {
+        variant: "error",
+      });
     },
   });
 
   const updateProductMutation = useMutation({
     mutationFn: ({ id, payload }) => updateProduct(id, payload),
     onSuccess: () => {
-      enqueueSnackbar("Cập nhật sản phẩm thành công", { variant: "success" });
+      enqueueSnackbar("Cập nhật sản phẩm thành công", {
+        variant: "success",
+      });
+
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       handleCloseForm();
     },
     onError: (error) => {
-      enqueueSnackbar(getApiErrorMessage(error), { variant: "error" });
+      enqueueSnackbar(getApiErrorMessage(error), {
+        variant: "error",
+      });
     },
   });
 
   const deleteProductMutation = useMutation({
     mutationFn: deleteProduct,
     onSuccess: () => {
-      enqueueSnackbar("Xóa sản phẩm thành công", { variant: "success" });
+      enqueueSnackbar("Xóa sản phẩm thành công", {
+        variant: "success",
+      });
+
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       setDeletingProduct(null);
     },
     onError: (error) => {
-      enqueueSnackbar(getApiErrorMessage(error), { variant: "error" });
+      enqueueSnackbar(getApiErrorMessage(error), {
+        variant: "error",
+      });
     },
   });
 
@@ -122,6 +138,11 @@ export default function AdminProductsPage() {
 
   const handleOpenCreate = () => {
     setEditingProduct(null);
+    setOpenForm(true);
+  };
+
+  const handleOpenEdit = (product) => {
+    setEditingProduct(product);
     setOpenForm(true);
   };
 
@@ -174,7 +195,10 @@ export default function AdminProductsPage() {
   };
 
   const handleConfirmDelete = () => {
-    if (!deletingProduct?.id) return;
+    if (!deletingProduct?.id) {
+      return;
+    }
+
     deleteProductMutation.mutate(deletingProduct.id);
   };
 
@@ -183,6 +207,7 @@ export default function AdminProductsPage() {
       <Stack spacing={2}>
         <PageHeader
           title="Quản lý sản phẩm"
+          description="Tạo, cập nhật, lọc và xóa mềm sản phẩm theo API backend"
           actions={
             <Button
               variant="contained"
@@ -225,10 +250,7 @@ export default function AdminProductsPage() {
           loading={productsQuery.isLoading || productsQuery.isFetching}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
-          onEdit={(product) => {
-            setEditingProduct(product);
-            setOpenForm(true);
-          }}
+          onEdit={handleOpenEdit}
           onDelete={setDeletingProduct}
         />
       </Stack>
@@ -237,7 +259,6 @@ export default function AdminProductsPage() {
         open={openForm}
         editingProduct={editingProduct}
         categories={categories}
-        existingProducts={productsPage.content || []}
         onClose={handleCloseForm}
         onSubmit={handleSubmitProduct}
         submitting={isSubmitting}
@@ -248,10 +269,12 @@ export default function AdminProductsPage() {
         title="Xóa sản phẩm"
         message={
           deletingProduct
-            ? `Bạn có chắc muốn xóa sản phẩm "${deletingProduct.name}" không?`
+            ? `Bạn có chắc muốn xóa sản phẩm "${deletingProduct.name}"? Sản phẩm sẽ được chuyển sang trạng thái ngừng bán.`
             : ""
         }
-        confirmText={deleteProductMutation.isPending ? "Đang xóa..." : "Xóa"}
+        confirmText={
+          deleteProductMutation.isPending ? "Đang xóa..." : "Xóa sản phẩm"
+        }
         cancelText="Hủy"
         onClose={() => setDeletingProduct(null)}
         onConfirm={handleConfirmDelete}

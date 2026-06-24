@@ -3,80 +3,74 @@ import {
   Button,
   Card,
   CardContent,
+  CardMedia,
   Chip,
   IconButton,
   Stack,
   Typography,
 } from "@mui/material";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import { formatVnd } from "@/utils/formatters";
 
-export default function WishlistCard({ product, onAddToCart, onRemove }) {
+export default function WishlistCard({ item, onRemove }) {
   return (
-    <Card
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <Box
-        sx={{
-          height: 150,
-          display: "grid",
-          placeItems: "center",
-          bgcolor: "grey.100",
-          fontSize: 56,
-        }}
-      >
-        {product.image}
-      </Box>
-
-      <CardContent
-        sx={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          gap: 1.5,
-        }}
-      >
-        <Stack direction="row" justifyContent="space-between" spacing={1}>
-          <Chip label={product.category} size="small" />
-
-          <IconButton
-            color="error"
-            size="small"
-            onClick={() => onRemove(product)}
-            aria-label="Xoá khỏi yêu thích"
-          >
-            <DeleteOutlineIcon fontSize="small" />
-          </IconButton>
-        </Stack>
-
-        <Box>
-          <Typography fontWeight={700} noWrap>
-            {product.name}
-          </Typography>
-
-          <Typography color="text.secondary" variant="body2">
-            SKU: {product.sku}
-          </Typography>
-        </Box>
-
-        <Typography color="primary" fontWeight={700}>
-          {formatVnd(product.price)}
-        </Typography>
-
-        <Button
-          variant="contained"
-          startIcon={<ShoppingCartOutlinedIcon />}
-          onClick={() => onAddToCart(product)}
-          fullWidth
-          sx={{ mt: "auto" }}
+    <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      {item.productImageUrl ? (
+        <CardMedia
+          component="img"
+          height="180"
+          image={item.productImageUrl}
+          alt={item.productName}
+        />
+      ) : (
+        <Box
+          sx={{
+            height: 180,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            bgcolor: "action.hover",
+          }}
         >
-          Thêm vào giỏ
-        </Button>
+          <Typography color="text.secondary">Không có ảnh</Typography>
+        </Box>
+      )}
+
+      <CardContent sx={{ flexGrow: 1 }}>
+        <Stack spacing={1} height="100%">
+          <Stack direction="row" justifyContent="space-between" spacing={1}>
+            <Chip
+              label={item.active ? "Đang bán" : "Ngừng bán"}
+              color={item.active ? "success" : "default"}
+              size="small"
+            />
+
+            <IconButton
+              size="small"
+              color="error"
+              onClick={() => onRemove(item)}
+              aria-label="Xoá khỏi yêu thích"
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+
+          <Typography fontWeight={700}>{item.productName}</Typography>
+
+          <Typography variant="body2" color="text.secondary">
+            Product ID: {item.productId}
+          </Typography>
+
+          <Typography variant="body2" color="text.secondary">
+            Tồn kho: {item.stock ?? 0}
+          </Typography>
+
+          <Typography fontWeight={800}>{formatVnd(item.price || 0)}</Typography>
+
+          <Button variant="outlined" fullWidth disabled sx={{ mt: "auto" }}>
+            Giỏ hàng chưa có API
+          </Button>
+        </Stack>
       </CardContent>
     </Card>
   );

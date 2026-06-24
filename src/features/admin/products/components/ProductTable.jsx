@@ -1,4 +1,5 @@
 import {
+  Avatar,
   Box,
   Chip,
   IconButton,
@@ -10,15 +11,14 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ImageNotSupportedOutlinedIcon from "@mui/icons-material/ImageNotSupportedOutlined";
 
-function formatPrice(price) {
-  const value = Number(price || 0);
-  return `${value.toLocaleString("vi-VN")}đ`;
-}
+import { formatVnd } from "@/utils/formatters";
 
 function getActiveLabel(active) {
   return active ? "Đang bán" : "Ngừng bán";
@@ -28,11 +28,23 @@ function getActiveColor(active) {
   return active ? "success" : "default";
 }
 
+function formatDateTime(value) {
+  if (!value) return "-";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString("vi-VN");
+}
+
 export default function ProductTable({
   products = [],
   totalElements = 0,
-  page,
-  rowsPerPage,
+  page = 0,
+  rowsPerPage = 10,
   loading = false,
   onPageChange,
   onRowsPerPageChange,
@@ -45,13 +57,13 @@ export default function ProductTable({
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Mã</TableCell>
               <TableCell>Sản phẩm</TableCell>
               <TableCell>SKU</TableCell>
               <TableCell>Danh mục</TableCell>
               <TableCell>Giá</TableCell>
               <TableCell>Tồn kho</TableCell>
               <TableCell>Trạng thái</TableCell>
+              <TableCell>Ngày tạo</TableCell>
               <TableCell align="right">Hành động</TableCell>
             </TableRow>
           </TableHead>
@@ -80,19 +92,66 @@ export default function ProductTable({
             ) : (
               products.map((product) => (
                 <TableRow key={product.id} hover>
-                  <TableCell>{product.id}</TableCell>
                   <TableCell>
-                    <Typography fontWeight={600}>{product.name}</Typography>
-                    {product.description && (
-                      <Typography variant="body2" color="text.secondary">
-                        {product.description}
-                      </Typography>
-                    )}
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
+                    >
+                      <Avatar
+                        variant="rounded"
+                        src={product.imageUrl || undefined}
+                        sx={{ width: 48, height: 48 }}
+                      >
+                        <ImageNotSupportedOutlinedIcon fontSize="small" />
+                      </Avatar>
+
+                      <Box>
+                        <Typography fontWeight={700}>
+                          {product.name || "-"}
+                        </Typography>
+
+                        <Typography variant="body2" color="text.secondary">
+                          ID: {product.id}
+                        </Typography>
+
+                        {product.description && (
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                              maxWidth: 320,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {product.description}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
                   </TableCell>
+
                   <TableCell>{product.sku || "-"}</TableCell>
+
                   <TableCell>{product.categoryName || "-"}</TableCell>
-                  <TableCell>{formatPrice(product.price)}</TableCell>
-                  <TableCell>{product.stock}</TableCell>
+
+                  <TableCell>{formatVnd(product.price || 0)}</TableCell>
+
+                  <TableCell>
+                    <Typography
+                      fontWeight={700}
+                      color={
+                        Number(product.stock || 0) === 0
+                          ? "error"
+                          : Number(product.stock || 0) <= 10
+                            ? "warning.main"
+                            : "text.primary"
+                      }
+                    >
+                      {product.stock ?? 0}
+                    </Typography>
+                  </TableCell>
+
                   <TableCell>
                     <Chip
                       label={getActiveLabel(product.active)}
@@ -100,14 +159,25 @@ export default function ProductTable({
                       size="small"
                     />
                   </TableCell>
-                  <TableCell align="right">
-                    <IconButton onClick={() => onEdit(product)}>
-                      <EditIcon />
-                    </IconButton>
 
-                    <IconButton color="error" onClick={() => onDelete(product)}>
-                      <DeleteIcon />
-                    </IconButton>
+                  <TableCell>{formatDateTime(product.createdAt)}</TableCell>
+
+                  <TableCell align="right">
+                    <Tooltip title="Sửa sản phẩm">
+                      <IconButton onClick={() => onEdit(product)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+
+                    <Tooltip title="Xóa sản phẩm">
+                      <IconButton
+                        color="error"
+                        onClick={() => onDelete(product)}
+                        disabled={product.active === false}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))

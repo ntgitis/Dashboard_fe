@@ -18,21 +18,17 @@ export default function UserOrderFilter({
   onReset,
 }) {
   return (
-    <Paper sx={{ p: 2 }}>
-      <Stack
-        direction={{ xs: "column", md: "row" }}
-        spacing={2}
-        alignItems={{ xs: "stretch", md: "center" }}
-      >
+    <Paper sx={{ p: 2, mb: 2 }}>
+      <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
         <TextField
           label="Tìm kiếm đơn hàng"
-          placeholder="Mã đơn, tên, email..."
+          placeholder="Nhập mã đơn, địa chỉ, ghi chú hoặc tên sản phẩm"
           value={keyword}
           onChange={(event) => onKeywordChange(event.target.value)}
           fullWidth
         />
 
-        <FormControl sx={{ minWidth: { xs: "100%", md: 220 } }}>
+        <FormControl sx={{ minWidth: 220 }}>
           <InputLabel>Trạng thái</InputLabel>
           <Select
             label="Trạng thái"
@@ -50,9 +46,14 @@ export default function UserOrderFilter({
         </FormControl>
 
         <Button
-          variant="outlined"
           onClick={onReset}
-          sx={{ minWidth: 120, height: 56 }}
+          variant="outlined"
+          sx={{
+            height: 40,
+            minWidth: 96,
+            px: 2.5,
+            whiteSpace: "nowrap",
+          }}
         >
           Đặt lại
         </Button>
