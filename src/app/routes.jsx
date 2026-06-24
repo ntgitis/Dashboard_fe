@@ -6,7 +6,7 @@ import LoginPage from "@/features/auth/pages/LoginPage";
 import AdminOverviewPage from "@/features/admin/dashboard/AdminOverviewPage";
 import AdminAnalyticsPage from "@/features/admin/analytics/AdminAnalyticsPage";
 import AdminProductsPage from "@/features/admin/products/pages/AdminProductsPage";
-import AdminOrdersPage from "@/features/admin/orders/AdminOrdersPage";
+import AdminOrdersPage from "@/features/admin/orders/pages/AdminOrdersPage";
 import AdminCustomersPage from "@/features/admin/customers/AdminCustomersPage";
 
 import UserOverviewPage from "@/features/user/dashboard/UserOverviewPage";
