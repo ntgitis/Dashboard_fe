@@ -1,8 +1,11 @@
 import axios from "axios";
 import { getAccessToken, clearTokens } from "./tokenStorage";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+
 export const httpClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: API_BASE_URL,
   timeout: 15000,
 });
 
