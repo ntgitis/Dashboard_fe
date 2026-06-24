@@ -11,7 +11,7 @@ import AdminCustomersPage from "@/features/admin/customers/pages/AdminCustomersP
 
 import UserOverviewPage from "@/features/user/dashboard/UserOverviewPage";
 import UserOrdersPage from "@/features/user/orders/pages/UserOrdersPage";
-import UserWishlistPage from "@/features/user/wishlist/UserWishlistPage";
+import UserWishlistPage from "@/features/user/wishlist/pages/UserWishlistPage";
 import UserAddressesPage from "@/features/user/addresses/UserAddressesPage";
 import UserProfilePage from "@/features/user/profile/UserProfilePage";
 
