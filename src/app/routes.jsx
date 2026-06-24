@@ -10,7 +10,7 @@ import AdminOrdersPage from "@/features/admin/orders/pages/AdminOrdersPage";
 import AdminCustomersPage from "@/features/admin/customers/pages/AdminCustomersPage";
 
 import UserOverviewPage from "@/features/user/dashboard/UserOverviewPage";
-import UserOrdersPage from "@/features/user/orders/UserOrdersPage";
+import UserOrdersPage from "@/features/user/orders/pages/UserOrdersPage";
 import UserWishlistPage from "@/features/user/wishlist/UserWishlistPage";
 import UserAddressesPage from "@/features/user/addresses/UserAddressesPage";
 import UserProfilePage from "@/features/user/profile/UserProfilePage";
