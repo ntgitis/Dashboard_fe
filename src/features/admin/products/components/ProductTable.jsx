@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   Chip,
   IconButton,
   Paper,
@@ -16,34 +15,30 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-function getStatusLabel(status) {
-  if (status === "ACTIVE") return "Đang bán";
-  if (status === "INACTIVE") return "Ngừng bán";
-  if (status === "LOW_STOCK") return "Sắp hết hàng";
-  return status;
+function formatPrice(price) {
+  const value = Number(price || 0);
+  return `${value.toLocaleString("vi-VN")}đ`;
 }
 
-function getStatusColor(status) {
-  if (status === "ACTIVE") return "success";
-  if (status === "INACTIVE") return "default";
-  if (status === "LOW_STOCK") return "warning";
-  return "default";
+function getActiveLabel(active) {
+  return active ? "Đang bán" : "Ngừng bán";
+}
+
+function getActiveColor(active) {
+  return active ? "success" : "default";
 }
 
 export default function ProductTable({
-  products,
+  products = [],
+  totalElements = 0,
   page,
   rowsPerPage,
+  loading = false,
   onPageChange,
   onRowsPerPageChange,
   onEdit,
   onDelete,
 }) {
-  const visibleProducts = products.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage,
-  );
-
   return (
     <Paper>
       <TableContainer>
@@ -54,18 +49,28 @@ export default function ProductTable({
               <TableCell>Sản phẩm</TableCell>
               <TableCell>SKU</TableCell>
               <TableCell>Danh mục</TableCell>
-              <TableCell align="right">Giá</TableCell>
-              <TableCell align="right">Tồn kho</TableCell>
+              <TableCell>Giá</TableCell>
+              <TableCell>Tồn kho</TableCell>
               <TableCell>Trạng thái</TableCell>
               <TableCell align="right">Hành động</TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {visibleProducts.length === 0 ? (
+            {loading ? (
               <TableRow>
                 <TableCell colSpan={8}>
-                  <Box sx={{ py: 4, textAlign: "center" }}>
+                  <Box py={3} textAlign="center">
+                    <Typography color="text.secondary">
+                      Đang tải sản phẩm...
+                    </Typography>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ) : products.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8}>
+                  <Box py={3} textAlign="center">
                     <Typography color="text.secondary">
                       Không có sản phẩm phù hợp
                     </Typography>
@@ -73,33 +78,30 @@ export default function ProductTable({
                 </TableCell>
               </TableRow>
             ) : (
-              visibleProducts.map((product) => (
+              products.map((product) => (
                 <TableRow key={product.id} hover>
                   <TableCell>{product.id}</TableCell>
-
                   <TableCell>
                     <Typography fontWeight={600}>{product.name}</Typography>
+                    {product.description && (
+                      <Typography variant="body2" color="text.secondary">
+                        {product.description}
+                      </Typography>
+                    )}
                   </TableCell>
-
-                  <TableCell>{product.sku}</TableCell>
-                  <TableCell>{product.category}</TableCell>
-
-                  <TableCell align="right">
-                    {product.price.toLocaleString("vi-VN")}đ
-                  </TableCell>
-
-                  <TableCell align="right">{product.stock}</TableCell>
-
+                  <TableCell>{product.sku || "-"}</TableCell>
+                  <TableCell>{product.categoryName || "-"}</TableCell>
+                  <TableCell>{formatPrice(product.price)}</TableCell>
+                  <TableCell>{product.stock}</TableCell>
                   <TableCell>
                     <Chip
+                      label={getActiveLabel(product.active)}
+                      color={getActiveColor(product.active)}
                       size="small"
-                      label={getStatusLabel(product.status)}
-                      color={getStatusColor(product.status)}
                     />
                   </TableCell>
-
                   <TableCell align="right">
-                    <IconButton color="primary" onClick={() => onEdit(product)}>
+                    <IconButton onClick={() => onEdit(product)}>
                       <EditIcon />
                     </IconButton>
 
@@ -116,12 +118,12 @@ export default function ProductTable({
 
       <TablePagination
         component="div"
-        count={products.length}
+        count={totalElements}
         page={page}
         rowsPerPage={rowsPerPage}
-        rowsPerPageOptions={[5, 10, 25]}
         onPageChange={onPageChange}
         onRowsPerPageChange={onRowsPerPageChange}
+        rowsPerPageOptions={[5, 10, 20, 50]}
         labelRowsPerPage="Số dòng mỗi trang"
       />
     </Paper>

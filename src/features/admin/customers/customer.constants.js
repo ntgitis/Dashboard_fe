@@ -1,59 +1,26 @@
-export const CUSTOMER_STATUS = {
-  ACTIVE: "ACTIVE",
-  BLOCKED: "BLOCKED",
+export const USER_ROLE = {
+  ADMIN: "ADMIN",
+  USER: "USER",
 };
 
-export const CUSTOMER_STATUS_OPTIONS = [
+export const USER_ROLE_OPTIONS = [
   {
-    value: CUSTOMER_STATUS.ACTIVE,
-    label: "Hoạt động",
-    color: "success",
-  },
-  {
-    value: CUSTOMER_STATUS.BLOCKED,
-    label: "Đã khoá",
+    value: USER_ROLE.ADMIN,
+    label: "Admin",
     color: "error",
   },
-];
-
-export const CUSTOMER_TIER_OPTIONS = [
   {
-    value: "bronze",
-    label: "Bronze",
-    color: "default",
-  },
-  {
-    value: "silver",
-    label: "Silver",
-    color: "info",
-  },
-  {
-    value: "gold",
-    label: "Gold",
-    color: "warning",
-  },
-  {
-    value: "platinum",
-    label: "Platinum",
+    value: USER_ROLE.USER,
+    label: "User",
     color: "success",
   },
 ];
 
-export function getCustomerStatusMeta(status) {
+export function getUserRoleMeta(role) {
   return (
-    CUSTOMER_STATUS_OPTIONS.find((option) => option.value === status) || {
-      value: status,
-      label: status,
-      color: "default",
-    }
-  );
-}
-
-export function getCustomerTierMeta(tier) {
-  return (
-    CUSTOMER_TIER_OPTIONS.find((option) => option.value === tier) || {
-      value: tier,
-      label: tier,
+    USER_ROLE_OPTIONS.find((option) => option.value === role) || {
+      value: role,
+      label: role || "-",
       color: "default",
     }
   );

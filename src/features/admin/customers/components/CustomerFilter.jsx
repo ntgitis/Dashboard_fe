@@ -1,84 +1,133 @@
-import {
-  Button,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Paper,
-  Select,
-  Stack,
-  TextField,
-} from "@mui/material";
-import {
-  CUSTOMER_STATUS_OPTIONS,
-  CUSTOMER_TIER_OPTIONS,
-} from "../customer.constants";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Alert, Stack } from "@mui/material";
+import { useSnackbar } from "notistack";
 
-export default function CustomerFilter({
-  keyword,
-  status,
-  tier,
-  onKeywordChange,
-  onStatusChange,
-  onTierChange,
-  onReset,
-}) {
+import { PageHeader } from "@/components/common/PageHeader";
+import { getAdminUsers, updateAdminUserRole } from "@/services/adminUserApi";
+
+import CustomerFilter from "../components/CustomerFilter";
+import CustomerTable from "../components/CustomerTable";
+import CustomerDetailDialog from "../components/CustomerDetailDialog";
+
+const DEFAULT_PAGE = 0;
+const DEFAULT_ROWS_PER_PAGE = 10;
+
+function getApiErrorMessage(error) {
   return (
-    <Paper sx={{ p: 2 }}>
-      <Stack
-        direction={{ xs: "column", md: "row" }}
-        spacing={2}
-        alignItems={{ xs: "stretch", md: "center" }}
-      >
-        <TextField
-          label="Tìm kiếm khách hàng"
-          placeholder="Mã KH, tên, email, số điện thoại..."
-          value={keyword}
-          onChange={(event) => onKeywordChange(event.target.value)}
-          fullWidth
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    "Có lỗi xảy ra"
+  );
+}
+
+export default function AdminCustomersPage() {
+  const queryClient = useQueryClient();
+  const { enqueueSnackbar } = useSnackbar();
+
+  const [page, setPage] = useState(DEFAULT_PAGE);
+  const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [nextRole, setNextRole] = useState("");
+
+  const usersQuery = useQuery({
+    queryKey: ["admin-users", { page, rowsPerPage }],
+    queryFn: () =>
+      getAdminUsers({
+        page,
+        size: rowsPerPage,
+      }),
+  });
+
+  const updateRoleMutation = useMutation({
+    mutationFn: ({ id, role }) => updateAdminUserRole(id, role),
+    onSuccess: () => {
+      enqueueSnackbar("Cập nhật role người dùng thành công", {
+        variant: "success",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      handleCloseDetail();
+    },
+    onError: (error) => {
+      enqueueSnackbar(getApiErrorMessage(error), { variant: "error" });
+    },
+  });
+
+  const usersPage = usersQuery.data || {
+    content: [],
+    totalElements: 0,
+    totalPages: 0,
+    number: page,
+    size: rowsPerPage,
+  };
+
+  const handlePageChange = (_, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleRowsPerPageChange = (event) => {
+    setRowsPerPage(Number(event.target.value));
+    setPage(DEFAULT_PAGE);
+  };
+
+  const handleOpenDetail = (user) => {
+    setSelectedUser(user);
+    setNextRole(user.role);
+  };
+
+  const handleCloseDetail = () => {
+    setSelectedUser(null);
+    setNextRole("");
+  };
+
+  const handleSaveRole = () => {
+    if (!selectedUser || nextRole === selectedUser.role) {
+      return;
+    }
+
+    updateRoleMutation.mutate({
+      id: selectedUser.id,
+      role: nextRole,
+    });
+  };
+
+  return (
+    <>
+      <Stack spacing={2}>
+        <PageHeader
+          title="Quản lý người dùng"
+          description="Quản lý danh sách người dùng theo API backend"
         />
 
-        <FormControl sx={{ minWidth: { xs: "100%", md: 180 } }}>
-          <InputLabel>Trạng thái</InputLabel>
-          <Select
-            label="Trạng thái"
-            value={status}
-            onChange={(event) => onStatusChange(event.target.value)}
-          >
-            <MenuItem value="all">Tất cả</MenuItem>
+        {usersQuery.isError && (
+          <Alert severity="error">{getApiErrorMessage(usersQuery.error)}</Alert>
+        )}
 
-            {CUSTOMER_STATUS_OPTIONS.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <CustomerFilter />
 
-        <FormControl sx={{ minWidth: { xs: "100%", md: 180 } }}>
-          <InputLabel>Hạng</InputLabel>
-          <Select
-            label="Hạng"
-            value={tier}
-            onChange={(event) => onTierChange(event.target.value)}
-          >
-            <MenuItem value="all">Tất cả</MenuItem>
-
-            {CUSTOMER_TIER_OPTIONS.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <Button
-          variant="outlined"
-          onClick={onReset}
-          sx={{ minWidth: 120, height: 56 }}
-        >
-          Đặt lại
-        </Button>
+        <CustomerTable
+          users={usersPage.content || []}
+          totalElements={usersPage.totalElements || 0}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          loading={usersQuery.isLoading || usersQuery.isFetching}
+          onPageChange={handlePageChange}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          onViewDetail={handleOpenDetail}
+        />
       </Stack>
-    </Paper>
+
+      <CustomerDetailDialog
+        open={Boolean(selectedUser)}
+        user={selectedUser}
+        nextRole={nextRole}
+        onNextRoleChange={setNextRole}
+        onClose={handleCloseDetail}
+        onSaveRole={handleSaveRole}
+        saving={updateRoleMutation.isPending}
+      />
+    </>
   );
 }

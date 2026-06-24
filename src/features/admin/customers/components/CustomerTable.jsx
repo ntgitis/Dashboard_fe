@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Chip,
   Paper,
@@ -11,86 +12,103 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { formatVnd } from "@/utils/formatters";
-import {
-  getCustomerStatusMeta,
-  getCustomerTierMeta,
-} from "../customer.constants";
+import { getUserRoleMeta } from "../customer.constants";
+
+function formatDate(value) {
+  if (!value) return "-";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString("vi-VN");
+}
+
+function formatDateTime(value) {
+  if (!value) return "-";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString("vi-VN");
+}
 
 export default function CustomerTable({
-  customers = [],
+  users = [],
+  totalElements = 0,
   page = 0,
   rowsPerPage = 10,
+  loading = false,
   onPageChange,
   onRowsPerPageChange,
   onViewDetail,
 }) {
-  const visibleCustomers = customers.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage,
-  );
-
   return (
     <Paper>
       <TableContainer>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Mã KH</TableCell>
-              <TableCell>Khách hàng</TableCell>
+              <TableCell>User ID</TableCell>
+              <TableCell>Họ tên</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>SĐT</TableCell>
-              <TableCell>Ngày tham gia</TableCell>
-              <TableCell>Số đơn</TableCell>
-              <TableCell>Tổng chi tiêu</TableCell>
-              <TableCell>Hạng</TableCell>
-              <TableCell>Trạng thái</TableCell>
-              <TableCell align="right">Thao tác</TableCell>
+              <TableCell>Ngày sinh</TableCell>
+              <TableCell>Địa chỉ</TableCell>
+              <TableCell>Role</TableCell>
+              <TableCell>Ngày tạo</TableCell>
+              <TableCell>Thao tác</TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {visibleCustomers.length === 0 ? (
+            {loading ? (
               <TableRow>
-                <TableCell colSpan={10} align="center">
-                  <Typography color="text.secondary" sx={{ py: 3 }}>
-                    Không có khách hàng phù hợp
-                  </Typography>
+                <TableCell colSpan={9}>
+                  <Box py={3} textAlign="center">
+                    <Typography color="text.secondary">
+                      Đang tải người dùng...
+                    </Typography>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ) : users.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9}>
+                  <Box py={3} textAlign="center">
+                    <Typography color="text.secondary">
+                      Không có người dùng
+                    </Typography>
+                  </Box>
                 </TableCell>
               </TableRow>
             ) : (
-              visibleCustomers.map((customer) => {
-                const tierMeta = getCustomerTierMeta(customer.tier);
-                const statusMeta = getCustomerStatusMeta(customer.status);
+              users.map((user) => {
+                const roleMeta = getUserRoleMeta(user.role);
 
                 return (
-                  <TableRow key={customer.id} hover>
-                    <TableCell>{customer.id}</TableCell>
-                    <TableCell>{customer.name}</TableCell>
-                    <TableCell>{customer.email}</TableCell>
-                    <TableCell>{customer.phone}</TableCell>
-                    <TableCell>{customer.joined}</TableCell>
-                    <TableCell>{customer.orders}</TableCell>
-                    <TableCell>{formatVnd(customer.spent)}</TableCell>
+                  <TableRow key={user.id} hover>
+                    <TableCell>{user.id}</TableCell>
+                    <TableCell>{user.fullName || "-"}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.phone || "-"}</TableCell>
+                    <TableCell>{formatDate(user.dob)}</TableCell>
+                    <TableCell>{user.address || "-"}</TableCell>
                     <TableCell>
                       <Chip
-                        label={tierMeta.label}
-                        color={tierMeta.color}
+                        label={roleMeta.label}
+                        color={roleMeta.color}
                         size="small"
                       />
                     </TableCell>
+                    <TableCell>{formatDateTime(user.createdAt)}</TableCell>
                     <TableCell>
-                      <Chip
-                        label={statusMeta.label}
-                        color={statusMeta.color}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      <Button
-                        size="small"
-                        onClick={() => onViewDetail(customer)}
-                      >
+                      <Button size="small" onClick={() => onViewDetail(user)}>
                         Chi tiết
                       </Button>
                     </TableCell>
@@ -104,12 +122,12 @@ export default function CustomerTable({
 
       <TablePagination
         component="div"
-        count={customers.length}
+        count={totalElements}
         page={page}
         rowsPerPage={rowsPerPage}
         onPageChange={onPageChange}
         onRowsPerPageChange={onRowsPerPageChange}
-        rowsPerPageOptions={[5, 10, 25]}
+        rowsPerPageOptions={[5, 10, 20, 50]}
         labelRowsPerPage="Số dòng mỗi trang"
       />
     </Paper>

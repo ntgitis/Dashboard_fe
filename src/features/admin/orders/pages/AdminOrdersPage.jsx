@@ -1,7 +1,11 @@
-import { useMemo, useState } from "react";
-import { Stack } from "@mui/material";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Alert, Stack } from "@mui/material";
+import { useSnackbar } from "notistack";
+
 import { PageHeader } from "@/components/common/PageHeader";
-import { orders as orderMocks } from "@/mocks";
+import { getAdminOrders, updateAdminOrderStatus } from "@/services/orderApi";
+
 import OrderFilter from "../components/OrderFilter";
 import OrderTable from "../components/OrderTable";
 import OrderDetailDialog from "../components/OrderDetailDialog";
@@ -9,43 +13,56 @@ import OrderDetailDialog from "../components/OrderDetailDialog";
 const DEFAULT_PAGE = 0;
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-export default function AdminOrdersPage() {
-  const [items, setItems] = useState(orderMocks);
-  const [keyword, setKeyword] = useState("");
-  const [status, setStatus] = useState("all");
+function getApiErrorMessage(error) {
+  return (
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    "Có lỗi xảy ra"
+  );
+}
 
+export default function AdminOrdersPage() {
+  const queryClient = useQueryClient();
+  const { enqueueSnackbar } = useSnackbar();
+
+  const [status, setStatus] = useState("all");
   const [page, setPage] = useState(DEFAULT_PAGE);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
-
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [nextStatus, setNextStatus] = useState("");
 
-  const filteredOrders = useMemo(() => {
-    const lowerKeyword = keyword.trim().toLowerCase();
+  const ordersQuery = useQuery({
+    queryKey: ["admin-orders", { status, page, rowsPerPage }],
+    queryFn: () =>
+      getAdminOrders({
+        status,
+        page,
+        size: rowsPerPage,
+      }),
+  });
 
-    return items.filter((order) => {
-      const matchKeyword =
-        !lowerKeyword ||
-        order.id.toLowerCase().includes(lowerKeyword) ||
-        order.customer.toLowerCase().includes(lowerKeyword) ||
-        order.email.toLowerCase().includes(lowerKeyword);
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, status }) => updateAdminOrderStatus(id, status),
+    onSuccess: () => {
+      enqueueSnackbar("Cập nhật trạng thái đơn hàng thành công", {
+        variant: "success",
+      });
 
-      const matchStatus = status === "all" || order.status === status;
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      handleCloseDetail();
+    },
+    onError: (error) => {
+      enqueueSnackbar(getApiErrorMessage(error), { variant: "error" });
+    },
+  });
 
-      return matchKeyword && matchStatus;
-    });
-  }, [items, keyword, status]);
-
-  const maxPage = Math.max(
-    0,
-    Math.ceil(filteredOrders.length / rowsPerPage) - 1,
-  );
-
-  const currentPage = Math.min(page, maxPage);
-
-  const handleKeywordChange = (value) => {
-    setKeyword(value);
-    setPage(DEFAULT_PAGE);
+  const ordersPage = ordersQuery.data || {
+    content: [],
+    totalElements: 0,
+    totalPages: 0,
+    number: page,
+    size: rowsPerPage,
   };
 
   const handleStatusChange = (value) => {
@@ -54,7 +71,6 @@ export default function AdminOrdersPage() {
   };
 
   const handleResetFilter = () => {
-    setKeyword("");
     setStatus("all");
     setPage(DEFAULT_PAGE);
   };
@@ -83,40 +99,38 @@ export default function AdminOrdersPage() {
       return;
     }
 
-    setItems((prev) =>
-      prev.map((order) =>
-        order.id === selectedOrder.id
-          ? {
-              ...order,
-              status: nextStatus,
-            }
-          : order,
-      ),
-    );
-
-    handleCloseDetail();
+    updateStatusMutation.mutate({
+      id: selectedOrder.id,
+      status: nextStatus,
+    });
   };
 
   return (
     <>
-      <PageHeader
-        title="Quản lý đơn hàng"
-        description="Theo dõi đơn hàng, trạng thái xử lý và giá trị thanh toán."
-      />
+      <Stack spacing={2}>
+        <PageHeader
+          title="Quản lý đơn hàng"
+          description="Theo dõi và cập nhật trạng thái đơn hàng từ backend"
+        />
 
-      <Stack spacing={3}>
+        {ordersQuery.isError && (
+          <Alert severity="error">
+            {getApiErrorMessage(ordersQuery.error)}
+          </Alert>
+        )}
+
         <OrderFilter
-          keyword={keyword}
           status={status}
-          onKeywordChange={handleKeywordChange}
           onStatusChange={handleStatusChange}
           onReset={handleResetFilter}
         />
 
         <OrderTable
-          orders={filteredOrders}
-          page={currentPage}
+          orders={ordersPage.content || []}
+          totalElements={ordersPage.totalElements || 0}
+          page={page}
           rowsPerPage={rowsPerPage}
+          loading={ordersQuery.isLoading || ordersQuery.isFetching}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
           onViewDetail={handleOpenDetail}
@@ -130,6 +144,7 @@ export default function AdminOrdersPage() {
         onNextStatusChange={setNextStatus}
         onClose={handleCloseDetail}
         onSave={handleSaveStatus}
+        saving={updateStatusMutation.isPending}
       />
     </>
   );

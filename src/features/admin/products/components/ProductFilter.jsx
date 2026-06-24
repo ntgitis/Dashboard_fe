@@ -11,24 +11,23 @@ import {
 
 export default function ProductFilter({
   keyword,
-  category,
-  status,
-  categories,
+  categoryId,
+  active,
+  categories = [],
   onKeywordChange,
   onCategoryChange,
-  onStatusChange,
+  onActiveChange,
   onReset,
 }) {
   return (
     <Paper sx={{ p: 2, mb: 2 }}>
-      <Grid container spacing={2}>
+      <Grid container spacing={2} alignItems="center">
         <Grid item xs={12} md={4}>
           <TextField
-            fullWidth
             label="Tìm kiếm sản phẩm"
-            placeholder="Nhập tên, SKU hoặc mã sản phẩm"
             value={keyword}
-            onChange={(e) => onKeywordChange(e.target.value)}
+            onChange={(event) => onKeywordChange(event.target.value)}
+            fullWidth
           />
         </Grid>
 
@@ -37,13 +36,14 @@ export default function ProductFilter({
             <InputLabel>Danh mục</InputLabel>
             <Select
               label="Danh mục"
-              value={category}
-              onChange={(e) => onCategoryChange(e.target.value)}
+              value={categoryId}
+              onChange={(event) => onCategoryChange(event.target.value)}
             >
               <MenuItem value="all">Tất cả</MenuItem>
-              {categories.map((item) => (
-                <MenuItem key={item} value={item}>
-                  {item}
+
+              {categories.map((category) => (
+                <MenuItem key={category.id} value={String(category.id)}>
+                  {category.name}
                 </MenuItem>
               ))}
             </Select>
@@ -55,24 +55,18 @@ export default function ProductFilter({
             <InputLabel>Trạng thái</InputLabel>
             <Select
               label="Trạng thái"
-              value={status}
-              onChange={(e) => onStatusChange(e.target.value)}
+              value={active}
+              onChange={(event) => onActiveChange(event.target.value)}
             >
               <MenuItem value="all">Tất cả</MenuItem>
-              <MenuItem value="ACTIVE">Đang bán</MenuItem>
-              <MenuItem value="INACTIVE">Ngừng bán</MenuItem>
-              <MenuItem value="LOW_STOCK">Sắp hết hàng</MenuItem>
+              <MenuItem value="true">Đang bán</MenuItem>
+              <MenuItem value="false">Ngừng bán</MenuItem>
             </Select>
           </FormControl>
         </Grid>
 
         <Grid item xs={12} md={2}>
-          <Button
-            fullWidth
-            variant="outlined"
-            sx={{ height: "100%" }}
-            onClick={onReset}
-          >
+          <Button onClick={onReset} fullWidth variant="outlined">
             Đặt lại
           </Button>
         </Grid>

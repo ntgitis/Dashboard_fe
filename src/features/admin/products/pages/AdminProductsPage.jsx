@@ -1,12 +1,19 @@
-import { useMemo, useState } from "react";
-import { Button, Stack } from "@mui/material";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Alert, Button, Stack } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import { useSnackbar } from "notistack";
+
 import { PageHeader } from "@/components/common/PageHeader";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import {
-  products as productMocks,
-  categories as mockCategories,
-} from "@/mocks";
+  createProduct,
+  deleteProduct,
+  getAdminProducts,
+  getCategories,
+  updateProduct,
+} from "@/services/productApi";
+
 import ProductFilter from "../components/ProductFilter";
 import ProductTable from "../components/ProductTable";
 import ProductFormDialog from "../components/ProductFormDialog";
@@ -14,32 +21,22 @@ import ProductFormDialog from "../components/ProductFormDialog";
 const DEFAULT_PAGE = 0;
 const DEFAULT_ROWS_PER_PAGE = 10;
 
-function getValue(valueOrEvent) {
-  return valueOrEvent?.target ? valueOrEvent.target.value : valueOrEvent;
-}
-
-function createProductId(products) {
-  const numericIds = products
-    .map((product) => product.id)
-    .filter((id) => typeof id === "number");
-
-  if (numericIds.length === products.length) {
-    return Math.max(0, ...numericIds) + 1;
-  }
-
-  if (typeof crypto !== "undefined" && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-
-  return String(Date.now());
+function getApiErrorMessage(error) {
+  return (
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    "Có lỗi xảy ra"
+  );
 }
 
 export default function AdminProductsPage() {
-  const [items, setItems] = useState(productMocks);
-  const [keyword, setKeyword] = useState("");
-  const [category, setCategory] = useState("all");
-  const [status, setStatus] = useState("all");
+  const queryClient = useQueryClient();
+  const { enqueueSnackbar } = useSnackbar();
 
+  const [keyword, setKeyword] = useState("");
+  const [categoryId, setCategoryId] = useState("all");
+  const [active, setActive] = useState("all");
   const [page, setPage] = useState(DEFAULT_PAGE);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
 
@@ -47,34 +44,81 @@ export default function AdminProductsPage() {
   const [deletingProduct, setDeletingProduct] = useState(null);
   const [openForm, setOpenForm] = useState(false);
 
-  const categories = useMemo(() => {
-    return mockCategories?.length
-      ? mockCategories
-      : Array.from(new Set(items.map((item) => item.category)));
-  }, [items]);
+  const productsQuery = useQuery({
+    queryKey: [
+      "admin-products",
+      {
+        keyword,
+        categoryId,
+        active,
+        page,
+        rowsPerPage,
+      },
+    ],
+    queryFn: () =>
+      getAdminProducts({
+        search: keyword.trim(),
+        categoryId: categoryId === "all" ? undefined : Number(categoryId),
+        active: active === "all" ? undefined : active === "true",
+        page,
+        size: rowsPerPage,
+      }),
+  });
 
-  const filteredProducts = useMemo(() => {
-    const lowerKeyword = keyword.trim().toLowerCase();
+  const categoriesQuery = useQuery({
+    queryKey: ["categories"],
+    queryFn: getCategories,
+  });
 
-    return items.filter((product) => {
-      const matchKeyword =
-        !lowerKeyword ||
-        product.name?.toLowerCase().includes(lowerKeyword) ||
-        product.sku?.toLowerCase().includes(lowerKeyword);
+  const createProductMutation = useMutation({
+    mutationFn: createProduct,
+    onSuccess: () => {
+      enqueueSnackbar("Thêm sản phẩm thành công", { variant: "success" });
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      handleCloseForm();
+      setPage(DEFAULT_PAGE);
+    },
+    onError: (error) => {
+      enqueueSnackbar(getApiErrorMessage(error), { variant: "error" });
+    },
+  });
 
-      const matchCategory = category === "all" || product.category === category;
-      const matchStatus = status === "all" || product.status === status;
+  const updateProductMutation = useMutation({
+    mutationFn: ({ id, payload }) => updateProduct(id, payload),
+    onSuccess: () => {
+      enqueueSnackbar("Cập nhật sản phẩm thành công", { variant: "success" });
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      handleCloseForm();
+    },
+    onError: (error) => {
+      enqueueSnackbar(getApiErrorMessage(error), { variant: "error" });
+    },
+  });
 
-      return matchKeyword && matchCategory && matchStatus;
-    });
-  }, [items, keyword, category, status]);
+  const deleteProductMutation = useMutation({
+    mutationFn: deleteProduct,
+    onSuccess: () => {
+      enqueueSnackbar("Xóa sản phẩm thành công", { variant: "success" });
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      setDeletingProduct(null);
+    },
+    onError: (error) => {
+      enqueueSnackbar(getApiErrorMessage(error), { variant: "error" });
+    },
+  });
 
-  const maxPage = Math.max(
-    0,
-    Math.ceil(filteredProducts.length / rowsPerPage) - 1,
-  );
+  const productsPage = productsQuery.data || {
+    content: [],
+    totalElements: 0,
+    totalPages: 0,
+    number: page,
+    size: rowsPerPage,
+  };
 
-  const currentPage = Math.min(page, maxPage);
+  const categories = categoriesQuery.data || [];
+
+  const isSubmitting =
+    createProductMutation.isPending || updateProductMutation.isPending;
 
   const handleOpenCreate = () => {
     setEditingProduct(null);
@@ -86,25 +130,25 @@ export default function AdminProductsPage() {
     setEditingProduct(null);
   };
 
-  const handleKeywordChange = (valueOrEvent) => {
-    setKeyword(getValue(valueOrEvent));
+  const handleKeywordChange = (value) => {
+    setKeyword(value);
     setPage(DEFAULT_PAGE);
   };
 
-  const handleCategoryChange = (valueOrEvent) => {
-    setCategory(getValue(valueOrEvent));
+  const handleCategoryChange = (value) => {
+    setCategoryId(value);
     setPage(DEFAULT_PAGE);
   };
 
-  const handleStatusChange = (valueOrEvent) => {
-    setStatus(getValue(valueOrEvent));
+  const handleActiveChange = (value) => {
+    setActive(value);
     setPage(DEFAULT_PAGE);
   };
 
   const handleResetFilter = () => {
     setKeyword("");
-    setCategory("all");
-    setStatus("all");
+    setCategoryId("all");
+    setActive("all");
     setPage(DEFAULT_PAGE);
   };
 
@@ -118,71 +162,68 @@ export default function AdminProductsPage() {
   };
 
   const handleSubmitProduct = (payload) => {
-    const hasPayloadId = payload.id !== undefined && payload.id !== null;
-
-    setItems((prev) => {
-      const exists =
-        hasPayloadId && prev.some((item) => item.id === payload.id);
-
-      if (exists) {
-        return prev.map((item) => (item.id === payload.id ? payload : item));
-      }
-
-      const newProduct = {
-        ...payload,
-        id: hasPayloadId ? payload.id : createProductId(prev),
-      };
-
-      return [newProduct, ...prev];
-    });
-
-    if (!hasPayloadId) {
-      setPage(DEFAULT_PAGE);
+    if (editingProduct?.id) {
+      updateProductMutation.mutate({
+        id: editingProduct.id,
+        payload,
+      });
+      return;
     }
 
-    handleCloseForm();
+    createProductMutation.mutate(payload);
   };
 
   const handleConfirmDelete = () => {
-    if (!deletingProduct) return;
-
-    setItems((prev) => prev.filter((item) => item.id !== deletingProduct.id));
-
-    setDeletingProduct(null);
+    if (!deletingProduct?.id) return;
+    deleteProductMutation.mutate(deletingProduct.id);
   };
 
   return (
     <>
-      <PageHeader
-        title="Quản lý sản phẩm"
-        description="Theo dõi danh mục, tồn kho và trạng thái sản phẩm."
-        actions={
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleOpenCreate}
-          >
-            Thêm sản phẩm
-          </Button>
-        }
-      />
+      <Stack spacing={2}>
+        <PageHeader
+          title="Quản lý sản phẩm"
+          description="Quản lý danh sách sản phẩm từ backend"
+          actions={
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleOpenCreate}
+            >
+              Thêm sản phẩm
+            </Button>
+          }
+        />
 
-      <Stack spacing={3}>
+        {productsQuery.isError && (
+          <Alert severity="error">
+            {getApiErrorMessage(productsQuery.error)}
+          </Alert>
+        )}
+
+        {categoriesQuery.isError && (
+          <Alert severity="warning">
+            Không tải được danh mục: {getApiErrorMessage(categoriesQuery.error)}
+          </Alert>
+        )}
+
         <ProductFilter
           keyword={keyword}
-          category={category}
-          status={status}
+          categoryId={categoryId}
+          active={active}
           categories={categories}
           onKeywordChange={handleKeywordChange}
           onCategoryChange={handleCategoryChange}
-          onStatusChange={handleStatusChange}
+          onActiveChange={handleActiveChange}
           onReset={handleResetFilter}
         />
 
         <ProductTable
-          products={filteredProducts}
-          page={currentPage}
+          products={productsPage.content || []}
+          totalElements={productsPage.totalElements || 0}
+          page={page}
           rowsPerPage={rowsPerPage}
+          loading={productsQuery.isLoading || productsQuery.isFetching}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
           onEdit={(product) => {
@@ -197,17 +238,22 @@ export default function AdminProductsPage() {
         open={openForm}
         editingProduct={editingProduct}
         categories={categories}
-        existingProducts={items}
+        existingProducts={productsPage.content || []}
         onClose={handleCloseForm}
         onSubmit={handleSubmitProduct}
+        submitting={isSubmitting}
       />
 
       <ConfirmDialog
         open={Boolean(deletingProduct)}
-        title="Xoá sản phẩm"
-        message={`Bạn có chắc muốn xoá "${deletingProduct?.name}" không?`}
-        confirmText="Xoá"
-        cancelText="Huỷ"
+        title="Xóa sản phẩm"
+        message={
+          deletingProduct
+            ? `Bạn có chắc muốn xóa sản phẩm "${deletingProduct.name}" không?`
+            : ""
+        }
+        confirmText={deleteProductMutation.isPending ? "Đang xóa..." : "Xóa"}
+        cancelText="Hủy"
         onClose={() => setDeletingProduct(null)}
         onConfirm={handleConfirmDelete}
       />

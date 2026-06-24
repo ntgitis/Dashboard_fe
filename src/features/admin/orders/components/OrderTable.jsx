@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Paper,
   Table,
@@ -13,58 +14,79 @@ import {
 import { StatusChip } from "@/components/common/StatusChip";
 import { formatVnd } from "@/utils/formatters";
 
+function formatDateTime(value) {
+  if (!value) return "-";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString("vi-VN");
+}
+
 export default function OrderTable({
   orders = [],
+  totalElements = 0,
   page = 0,
   rowsPerPage = 10,
+  loading = false,
   onPageChange,
   onRowsPerPageChange,
   onViewDetail,
 }) {
-  const visibleOrders = orders.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage,
-  );
-
   return (
     <Paper>
       <TableContainer>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Mã đơn</TableCell>
-              <TableCell>Khách hàng</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Ngày</TableCell>
-              <TableCell>Sản phẩm</TableCell>
+              <TableCell>ID đơn</TableCell>
+              <TableCell>User ID</TableCell>
+              <TableCell>Ngày tạo</TableCell>
+              <TableCell>Số item</TableCell>
               <TableCell>Tổng tiền</TableCell>
+              <TableCell>Địa chỉ giao hàng</TableCell>
               <TableCell>Trạng thái</TableCell>
-              <TableCell align="right">Thao tác</TableCell>
+              <TableCell>Thao tác</TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {visibleOrders.length === 0 ? (
+            {loading ? (
               <TableRow>
-                <TableCell colSpan={8} align="center">
-                  <Typography color="text.secondary" sx={{ py: 3 }}>
-                    Không có đơn hàng phù hợp
-                  </Typography>
+                <TableCell colSpan={8}>
+                  <Box py={3} textAlign="center">
+                    <Typography color="text.secondary">
+                      Đang tải đơn hàng...
+                    </Typography>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ) : orders.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8}>
+                  <Box py={3} textAlign="center">
+                    <Typography color="text.secondary">
+                      Không có đơn hàng
+                    </Typography>
+                  </Box>
                 </TableCell>
               </TableRow>
             ) : (
-              visibleOrders.map((order) => (
+              orders.map((order) => (
                 <TableRow key={order.id} hover>
                   <TableCell>{order.id}</TableCell>
-                  <TableCell>{order.customer}</TableCell>
-                  <TableCell>{order.email}</TableCell>
-                  <TableCell>{order.date}</TableCell>
-                  <TableCell>{order.items}</TableCell>
-                  <TableCell>{formatVnd(order.total)}</TableCell>
+                  <TableCell>{order.userId}</TableCell>
+                  <TableCell>{formatDateTime(order.createdAt)}</TableCell>
+                  <TableCell>{order.items?.length || 0}</TableCell>
+                  <TableCell>{formatVnd(order.totalAmount || 0)}</TableCell>
+                  <TableCell>{order.shippingAddress || "-"}</TableCell>
                   <TableCell>
                     <StatusChip status={order.status} />
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell>
                     <Button size="small" onClick={() => onViewDetail(order)}>
                       Chi tiết
                     </Button>
@@ -78,12 +100,12 @@ export default function OrderTable({
 
       <TablePagination
         component="div"
-        count={orders.length}
+        count={totalElements}
         page={page}
         rowsPerPage={rowsPerPage}
         onPageChange={onPageChange}
         onRowsPerPageChange={onRowsPerPageChange}
-        rowsPerPageOptions={[5, 10, 25]}
+        rowsPerPageOptions={[5, 10, 20, 50]}
         labelRowsPerPage="Số dòng mỗi trang"
       />
     </Paper>

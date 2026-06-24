@@ -31,7 +31,11 @@ const adminItems = [
 
 const userItems = [
   { title: "Tổng quan", url: "/user", icon: DashboardOutlined, end: true },
-  { title: "Đơn hàng của tôi", url: "/user/orders", icon: ShoppingCartOutlined },
+  {
+    title: "Đơn hàng của tôi",
+    url: "/user/orders",
+    icon: ShoppingCartOutlined,
+  },
   { title: "Yêu thích", url: "/user/wishlist", icon: FavoriteBorderOutlined },
   { title: "Địa chỉ", url: "/user/addresses", icon: LocationOnOutlined },
   { title: "Hồ sơ", url: "/user/profile", icon: PersonOutlineOutlined },
@@ -102,7 +106,7 @@ export default function Sidebar({ role, onRoleChange }) {
         </List>
       </Box>
 
-      <Divider />
+      {/* <Divider />
 
       <Box sx={{ p: 1.5 }}>
         <Typography
@@ -136,7 +140,7 @@ export default function Sidebar({ role, onRoleChange }) {
             <ListItemText primary="Khách hàng" />
           </ListItemButton>
         </List>
-      </Box>
+      </Box> */}
     </Box>
   );
 }

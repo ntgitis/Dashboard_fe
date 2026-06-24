@@ -6,108 +6,135 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
   Stack,
   Typography,
 } from "@mui/material";
-import { formatVnd } from "@/utils/formatters";
-import {
-  CUSTOMER_STATUS,
-  getCustomerStatusMeta,
-  getCustomerTierMeta,
-} from "../customer.constants";
+import { getUserRoleMeta, USER_ROLE_OPTIONS } from "../customer.constants";
+
+function formatDate(value) {
+  if (!value) return "-";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString("vi-VN");
+}
+
+function formatDateTime(value) {
+  if (!value) return "-";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString("vi-VN");
+}
 
 export default function CustomerDetailDialog({
   open,
-  customer,
+  user,
+  nextRole,
+  onNextRoleChange,
   onClose,
-  onToggleStatus,
+  onSaveRole,
+  saving = false,
 }) {
-  if (!customer) {
+  if (!user) {
     return null;
   }
 
-  const tierMeta = getCustomerTierMeta(customer.tier);
-  const statusMeta = getCustomerStatusMeta(customer.status);
-
-  const isBlocked = customer.status === CUSTOMER_STATUS.BLOCKED;
+  const roleMeta = getUserRoleMeta(user.role);
+  const isSaveDisabled = saving || !nextRole || nextRole === user.role;
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Chi tiết khách hàng</DialogTitle>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>Chi tiết người dùng</DialogTitle>
 
       <DialogContent>
-        <Stack spacing={2} sx={{ mt: 1 }}>
-          <Stack spacing={0.75}>
+        <Stack spacing={2}>
+          <Typography>
+            <strong>User ID:</strong> {user.id}
+          </Typography>
+
+          <Typography>
+            <strong>Họ tên:</strong> {user.fullName || "-"}
+          </Typography>
+
+          <Typography>
+            <strong>Email:</strong> {user.email}
+          </Typography>
+
+          <Typography>
+            <strong>Số điện thoại:</strong> {user.phone || "-"}
+          </Typography>
+
+          <Typography>
+            <strong>Ngày sinh:</strong> {formatDate(user.dob)}
+          </Typography>
+
+          <Typography>
+            <strong>Địa chỉ:</strong> {user.address || "-"}
+          </Typography>
+
+          <Typography>
+            <strong>Avatar path:</strong> {user.avatarPath || "-"}
+          </Typography>
+
+          <Typography>
+            <strong>Ngày tạo:</strong> {formatDateTime(user.createdAt)}
+          </Typography>
+
+          <Typography>
+            <strong>Cập nhật lần cuối:</strong> {formatDateTime(user.updatedAt)}
+          </Typography>
+
+          <Stack direction="row" spacing={1} alignItems="center">
             <Typography>
-              <strong>Mã khách hàng:</strong> {customer.id}
+              <strong>Role hiện tại:</strong>
             </Typography>
-
-            <Typography>
-              <strong>Họ tên:</strong> {customer.name}
-            </Typography>
-
-            <Typography>
-              <strong>Email:</strong> {customer.email}
-            </Typography>
-
-            <Typography>
-              <strong>Số điện thoại:</strong> {customer.phone}
-            </Typography>
-
-            <Typography>
-              <strong>Ngày tham gia:</strong> {customer.joined}
-            </Typography>
-
-            <Typography>
-              <strong>Số đơn hàng:</strong> {customer.orders}
-            </Typography>
-
-            <Typography>
-              <strong>Tổng chi tiêu:</strong> {formatVnd(customer.spent)}
-            </Typography>
-
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Typography>
-                <strong>Hạng khách hàng:</strong>
-              </Typography>
-              <Chip
-                label={tierMeta.label}
-                color={tierMeta.color}
-                size="small"
-              />
-            </Stack>
-
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Typography>
-                <strong>Trạng thái:</strong>
-              </Typography>
-              <Chip
-                label={statusMeta.label}
-                color={statusMeta.color}
-                size="small"
-              />
-            </Stack>
+            <Chip label={roleMeta.label} color={roleMeta.color} size="small" />
           </Stack>
 
           <Divider />
 
-          <Typography color="text.secondary" variant="body2">
-            Khi khoá tài khoản, khách hàng sẽ không thể tiếp tục đặt hàng trong
-            hệ thống thật. Ở phiên bản hiện tại, thao tác này đang được lưu bằng
-            local state để phục vụ demo.
-          </Typography>
+          <FormControl fullWidth>
+            <InputLabel>Role mới</InputLabel>
+            <Select
+              label="Role mới"
+              value={nextRole}
+              onChange={(event) => onNextRoleChange(event.target.value)}
+              disabled={saving}
+            >
+              {USER_ROLE_OPTIONS.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Stack>
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Đóng</Button>
+        <Button onClick={onClose} disabled={saving}>
+          Đóng
+        </Button>
 
         <Button
           variant="contained"
-          color={isBlocked ? "success" : "error"}
-          onClick={() => onToggleStatus(customer)}
+          onClick={onSaveRole}
+          disabled={isSaveDisabled}
         >
-          {isBlocked ? "Mở khoá tài khoản" : "Khoá tài khoản"}
+          {saving ? "Đang lưu..." : "Lưu role"}
         </Button>
       </DialogActions>
     </Dialog>

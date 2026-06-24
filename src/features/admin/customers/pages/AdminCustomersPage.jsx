@@ -1,70 +1,124 @@
 import { useMemo, useState } from "react";
-import { Stack } from "@mui/material";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Alert, Stack } from "@mui/material";
+import { useSnackbar } from "notistack";
+
 import { PageHeader } from "@/components/common/PageHeader";
-import { customers as customerMocks } from "@/mocks";
+import { getAdminUsers, updateAdminUserRole } from "@/services/adminUserApi";
+
 import CustomerFilter from "../components/CustomerFilter";
 import CustomerTable from "../components/CustomerTable";
 import CustomerDetailDialog from "../components/CustomerDetailDialog";
-import { CUSTOMER_STATUS } from "../customer.constants";
 
 const DEFAULT_PAGE = 0;
 const DEFAULT_ROWS_PER_PAGE = 10;
 
+// Vì backend chưa có search/filter users,
+// FE lấy số lượng lớn rồi filter/paginate ở client.
+const FETCH_USERS_SIZE = 1000;
+
+function getApiErrorMessage(error) {
+  return (
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    "Có lỗi xảy ra"
+  );
+}
+
+function normalizeText(value) {
+  return String(value ?? "")
+    .toLowerCase()
+    .trim();
+}
+
+function matchKeyword(user, keyword) {
+  const normalizedKeyword = normalizeText(keyword);
+
+  if (!normalizedKeyword) {
+    return true;
+  }
+
+  const searchableFields = [user.id, user.fullName, user.email, user.phone];
+
+  return searchableFields.some((field) =>
+    normalizeText(field).includes(normalizedKeyword),
+  );
+}
+
+function matchRole(user, role) {
+  if (!role || role === "all") {
+    return true;
+  }
+
+  return user.role === role;
+}
+
 export default function AdminCustomersPage() {
-  const [items, setItems] = useState(customerMocks);
+  const queryClient = useQueryClient();
+  const { enqueueSnackbar } = useSnackbar();
+
   const [keyword, setKeyword] = useState("");
-  const [status, setStatus] = useState("all");
-  const [tier, setTier] = useState("all");
+  const [role, setRole] = useState("all");
 
   const [page, setPage] = useState(DEFAULT_PAGE);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_ROWS_PER_PAGE);
 
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [nextRole, setNextRole] = useState("");
 
-  const filteredCustomers = useMemo(() => {
-    const lowerKeyword = keyword.trim().toLowerCase();
+  const usersQuery = useQuery({
+    queryKey: ["admin-users"],
+    queryFn: () =>
+      getAdminUsers({
+        page: 0,
+        size: FETCH_USERS_SIZE,
+      }),
+  });
 
-    return items.filter((customer) => {
-      const matchKeyword =
-        !lowerKeyword ||
-        customer.id.toLowerCase().includes(lowerKeyword) ||
-        customer.name.toLowerCase().includes(lowerKeyword) ||
-        customer.email.toLowerCase().includes(lowerKeyword) ||
-        customer.phone.includes(lowerKeyword);
+  const updateRoleMutation = useMutation({
+    mutationFn: ({ id, role }) => updateAdminUserRole(id, role),
+    onSuccess: () => {
+      enqueueSnackbar("Cập nhật role người dùng thành công", {
+        variant: "success",
+      });
 
-      const matchStatus = status === "all" || customer.status === status;
-      const matchTier = tier === "all" || customer.tier === tier;
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      handleCloseDetail();
+    },
+    onError: (error) => {
+      enqueueSnackbar(getApiErrorMessage(error), { variant: "error" });
+    },
+  });
 
-      return matchKeyword && matchStatus && matchTier;
-    });
-  }, [items, keyword, status, tier]);
+  const users = usersQuery.data?.content || [];
 
-  const maxPage = Math.max(
-    0,
-    Math.ceil(filteredCustomers.length / rowsPerPage) - 1,
-  );
+  const filteredUsers = useMemo(() => {
+    return users.filter(
+      (user) => matchKeyword(user, keyword) && matchRole(user, role),
+    );
+  }, [users, keyword, role]);
 
-  const currentPage = Math.min(page, maxPage);
+  const paginatedUsers = useMemo(() => {
+    const startIndex = page * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+
+    return filteredUsers.slice(startIndex, endIndex);
+  }, [filteredUsers, page, rowsPerPage]);
 
   const handleKeywordChange = (value) => {
     setKeyword(value);
     setPage(DEFAULT_PAGE);
   };
 
-  const handleStatusChange = (value) => {
-    setStatus(value);
-    setPage(DEFAULT_PAGE);
-  };
-
-  const handleTierChange = (value) => {
-    setTier(value);
+  const handleRoleChange = (value) => {
+    setRole(value);
     setPage(DEFAULT_PAGE);
   };
 
   const handleResetFilter = () => {
     setKeyword("");
-    setStatus("all");
-    setTier("all");
+    setRole("all");
     setPage(DEFAULT_PAGE);
   };
 
@@ -77,70 +131,67 @@ export default function AdminCustomersPage() {
     setPage(DEFAULT_PAGE);
   };
 
-  const handleCloseDetail = () => {
-    setSelectedCustomer(null);
+  const handleOpenDetail = (user) => {
+    setSelectedUser(user);
+    setNextRole(user.role);
   };
 
-  const handleToggleCustomerStatus = (customer) => {
-    const nextStatus =
-      customer.status === CUSTOMER_STATUS.BLOCKED
-        ? CUSTOMER_STATUS.ACTIVE
-        : CUSTOMER_STATUS.BLOCKED;
+  const handleCloseDetail = () => {
+    setSelectedUser(null);
+    setNextRole("");
+  };
 
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === customer.id
-          ? {
-              ...item,
-              status: nextStatus,
-            }
-          : item,
-      ),
-    );
+  const handleSaveRole = () => {
+    if (!selectedUser || nextRole === selectedUser.role) {
+      return;
+    }
 
-    setSelectedCustomer((prev) =>
-      prev && prev.id === customer.id
-        ? {
-            ...prev,
-            status: nextStatus,
-          }
-        : prev,
-    );
+    updateRoleMutation.mutate({
+      id: selectedUser.id,
+      role: nextRole,
+    });
   };
 
   return (
     <>
-      <PageHeader
-        title="Quản lý khách hàng"
-        description="Theo dõi hồ sơ, hạng thành viên, trạng thái và tổng giá trị mua hàng."
-      />
+      <Stack spacing={2}>
+        <PageHeader
+          title="Quản lý người dùng"
+          description="Quản lý danh sách người dùng theo API backend"
+        />
 
-      <Stack spacing={3}>
+        {usersQuery.isError && (
+          <Alert severity="error">{getApiErrorMessage(usersQuery.error)}</Alert>
+        )}
+
         <CustomerFilter
           keyword={keyword}
-          status={status}
-          tier={tier}
+          role={role}
           onKeywordChange={handleKeywordChange}
-          onStatusChange={handleStatusChange}
-          onTierChange={handleTierChange}
+          onRoleChange={handleRoleChange}
           onReset={handleResetFilter}
         />
 
         <CustomerTable
-          customers={filteredCustomers}
-          page={currentPage}
+          users={paginatedUsers}
+          totalElements={filteredUsers.length}
+          page={page}
           rowsPerPage={rowsPerPage}
+          loading={usersQuery.isLoading || usersQuery.isFetching}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}
-          onViewDetail={setSelectedCustomer}
+          onViewDetail={handleOpenDetail}
         />
       </Stack>
 
       <CustomerDetailDialog
-        open={Boolean(selectedCustomer)}
-        customer={selectedCustomer}
+        open={Boolean(selectedUser)}
+        user={selectedUser}
+        nextRole={nextRole}
+        onNextRoleChange={setNextRole}
         onClose={handleCloseDetail}
-        onToggleStatus={handleToggleCustomerStatus}
+        onSaveRole={handleSaveRole}
+        saving={updateRoleMutation.isPending}
       />
     </>
   );
