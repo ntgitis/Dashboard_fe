@@ -157,10 +157,7 @@ export default function UserWishlistPage() {
 
   return (
     <>
-      <PageHeader
-        title="Sản phẩm yêu thích"
-        description="Quản lý các sản phẩm bạn đã lưu và thêm nhanh vào giỏ hàng."
-      />
+      <PageHeader title="Sản phẩm yêu thích" />
 
       <Stack spacing={3}>
         <WishlistFilter

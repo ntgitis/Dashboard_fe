@@ -183,7 +183,6 @@ export default function AdminProductsPage() {
       <Stack spacing={2}>
         <PageHeader
           title="Quản lý sản phẩm"
-          description="Quản lý danh sách sản phẩm từ backend"
           actions={
             <Button
               variant="contained"

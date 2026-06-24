@@ -1,10 +1,9 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import DashboardLayout from "@/components/layout/DashboardLayout";
 
+import DashboardLayout from "@/components/layout/DashboardLayout";
 import LoginPage from "@/features/auth/pages/LoginPage";
 
 import AdminOverviewPage from "@/features/admin/dashboard/AdminOverviewPage";
-import AdminAnalyticsPage from "@/features/admin/analytics/AdminAnalyticsPage";
 import AdminProductsPage from "@/features/admin/products/pages/AdminProductsPage";
 import AdminOrdersPage from "@/features/admin/orders/pages/AdminOrdersPage";
 import AdminCustomersPage from "@/features/admin/customers/pages/AdminCustomersPage";
@@ -23,7 +22,7 @@ export default function AppRoutes() {
 
       <Route path="/admin" element={<DashboardLayout role="admin" />}>
         <Route index element={<AdminOverviewPage />} />
-        <Route path="analytics" element={<AdminAnalyticsPage />} />
+        <Route path="analytics" element={<Navigate to="/admin" replace />} />
         <Route path="products" element={<AdminProductsPage />} />
         <Route path="orders" element={<AdminOrdersPage />} />
         <Route path="customers" element={<AdminCustomersPage />} />

@@ -112,10 +112,7 @@ export default function UserOrdersPage() {
 
   return (
     <>
-      <PageHeader
-        title="Đơn hàng của tôi"
-        description="Theo dõi trạng thái đơn hàng và quản lý các đơn còn có thể huỷ."
-      />
+      <PageHeader title="Đơn hàng của tôi" />
 
       <Stack spacing={3}>
         <UserOrderFilter

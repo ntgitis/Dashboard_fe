@@ -1,5 +1,4 @@
 import {
-  BarChartOutlined,
   DashboardOutlined,
   FavoriteBorderOutlined,
   Inventory2Outlined,
@@ -23,7 +22,6 @@ import { NavLink } from "react-router-dom";
 
 const adminItems = [
   { title: "Tổng quan", url: "/admin", icon: DashboardOutlined, end: true },
-  { title: "Phân tích", url: "/admin/analytics", icon: BarChartOutlined },
   { title: "Sản phẩm", url: "/admin/products", icon: Inventory2Outlined },
   { title: "Đơn hàng", url: "/admin/orders", icon: ShoppingCartOutlined },
   { title: "Khách hàng", url: "/admin/customers", icon: PeopleAltOutlined },
@@ -67,10 +65,10 @@ export default function Sidebar({ role }) {
 
           <Box>
             <Typography variant="h6" fontWeight={800} lineHeight={1.1}>
-              Store Dashboard
+              Dashboard
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {role === "admin" ? "Khu vực quản trị" : "Khu vực khách hàng"}
+              {role === "admin" ? "Quản trị" : "Khách hàng"}
             </Typography>
           </Box>
         </Box>

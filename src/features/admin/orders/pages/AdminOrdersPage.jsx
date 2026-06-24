@@ -108,10 +108,7 @@ export default function AdminOrdersPage() {
   return (
     <>
       <Stack spacing={2}>
-        <PageHeader
-          title="Quản lý đơn hàng"
-          description="Theo dõi và cập nhật trạng thái đơn hàng từ backend"
-        />
+        <PageHeader title="Quản lý đơn hàng" />
 
         {ordersQuery.isError && (
           <Alert severity="error">

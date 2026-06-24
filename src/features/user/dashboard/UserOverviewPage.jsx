@@ -23,27 +23,57 @@ export default function UserOverviewPage() {
 
   return (
     <>
-      <PageHeader
-        title="Tổng quan tài khoản"
-        description="Theo dõi đơn hàng, chi tiêu và thông tin tài khoản của bạn."
-      />
+      <PageHeader title="Tổng quan tài khoản" />
 
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", xl: "repeat(4, 1fr)" },
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "repeat(2, 1fr)",
+            xl: "repeat(4, 1fr)",
+          },
           gap: 2,
         }}
       >
-        <StatCard label="Đơn hàng" value="12" delta="3 đơn mới" icon={ShoppingBagOutlinedIcon} tone="primary" />
-        <StatCard label="Đang giao" value="2" delta="Cần theo dõi" icon={LocalShippingOutlinedIcon} tone="info" />
-        <StatCard label="Yêu thích" value="8" delta="+2 tuần này" icon={FavoriteBorderOutlinedIcon} tone="warning" />
-        <StatCard label="Tổng chi tiêu" value={formatVnd(18_500_000)} delta="+6.2%" icon={WalletOutlinedIcon} tone="success" />
+        <StatCard
+          label="Đơn hàng"
+          value="12"
+          delta="3 đơn mới"
+          icon={ShoppingBagOutlinedIcon}
+          tone="primary"
+        />
+        <StatCard
+          label="Đang giao"
+          value="2"
+          delta="Cần theo dõi"
+          icon={LocalShippingOutlinedIcon}
+          tone="info"
+        />
+        <StatCard
+          label="Yêu thích"
+          value="8"
+          delta="+2 tuần này"
+          icon={FavoriteBorderOutlinedIcon}
+          tone="warning"
+        />
+        <StatCard
+          label="Tổng chi tiêu"
+          value={formatVnd(18_500_000)}
+          delta="+6.2%"
+          icon={WalletOutlinedIcon}
+          tone="success"
+        />
       </Box>
 
       <Card sx={{ mt: 3 }}>
         <CardContent sx={{ p: 0 }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 2 }}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ p: 2 }}
+          >
             <Box>
               <Typography variant="subtitle1" fontWeight={700}>
                 Đơn hàng gần đây
@@ -76,7 +106,9 @@ export default function UserOverviewPage() {
                 </Box>
 
                 <Stack direction="row" spacing={2} alignItems="center">
-                  <Typography fontWeight={700}>{formatVnd(order.total)}</Typography>
+                  <Typography fontWeight={700}>
+                    {formatVnd(order.total)}
+                  </Typography>
                   <StatusChip status={order.status} />
                 </Stack>
               </Stack>

@@ -14,6 +14,7 @@ export default function DashboardLayout({ role = "admin" }) {
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
       <Header
+        role={role}
         drawerWidth={drawerWidth}
         onMenuClick={() => setMobileOpen(true)}
       />

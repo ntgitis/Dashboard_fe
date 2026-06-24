@@ -150,10 +150,7 @@ export default function AdminCustomersPage() {
   return (
     <>
       <Stack spacing={2}>
-        <PageHeader
-          title="Quản lý khách hàng"
-          description="Quản lý danh sách người dùng theo API backend"
-        />
+        <PageHeader title="Quản lý khách hàng" />
 
         {usersQuery.isError && (
           <Alert severity="error">{getApiErrorMessage(usersQuery.error)}</Alert>

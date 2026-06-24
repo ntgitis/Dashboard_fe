@@ -1,29 +1,10 @@
 import { httpClient } from "./httpClient";
-import { clearTokens, setTokens } from "./tokenStorage";
-
-const AUTH_USER_KEY = "auth_user";
-
-function setAuthUser(user) {
-  if (!user) return;
-  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
-}
-
-export function getAuthUser() {
-  const rawUser = localStorage.getItem(AUTH_USER_KEY);
-
-  if (!rawUser) return null;
-
-  try {
-    return JSON.parse(rawUser);
-  } catch {
-    localStorage.removeItem(AUTH_USER_KEY);
-    return null;
-  }
-}
-
-function clearAuthUser() {
-  localStorage.removeItem(AUTH_USER_KEY);
-}
+import {
+  clearTokens,
+  getRefreshToken,
+  setAuthUser,
+  setTokens,
+} from "./tokenStorage";
 
 function mapUserFromApi(user) {
   if (!user) return null;
@@ -37,6 +18,7 @@ function mapUserFromApi(user) {
     phone: user.phone,
     address: user.address,
     role: user.role,
+    avatarPath: user.avatarPath,
   };
 }
 
@@ -73,7 +55,7 @@ export async function register(payload) {
 }
 
 export async function refreshToken() {
-  const refreshTokenValue = localStorage.getItem("refresh_token");
+  const refreshTokenValue = getRefreshToken();
 
   if (!refreshTokenValue) {
     throw new Error("Không tìm thấy refresh token");
@@ -90,7 +72,9 @@ export async function refreshToken() {
     refreshToken: mappedData.refreshToken,
   });
 
-  setAuthUser(mappedData.user);
+  if (mappedData.user) {
+    setAuthUser(mappedData.user);
+  }
 
   return mappedData;
 }
@@ -100,6 +84,5 @@ export async function logout() {
     await httpClient.post("/auth/logout");
   } finally {
     clearTokens();
-    clearAuthUser();
   }
 }

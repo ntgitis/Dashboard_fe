@@ -223,8 +223,7 @@ export default function UserAddressesPage() {
   return (
     <>
       <PageHeader
-        title="Sổ địa chỉ"
-        description="Quản lý địa chỉ giao hàng và chọn địa chỉ mặc định."
+        title="Địa chỉ"
         actions={
           <Button
             variant="contained"

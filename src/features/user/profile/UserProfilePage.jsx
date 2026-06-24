@@ -153,10 +153,7 @@ export default function UserProfilePage() {
 
   return (
     <>
-      <PageHeader
-        title="Hồ sơ cá nhân"
-        description="Cập nhật thông tin tài khoản và bảo mật."
-      />
+      <PageHeader title="Hồ sơ cá nhân" />
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
