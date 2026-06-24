@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Button,
   Checkbox,
@@ -11,7 +11,7 @@ import {
   TextField,
 } from "@mui/material";
 
-const initialForm = {
+const emptyForm = {
   label: "",
   name: "",
   phone: "",
@@ -19,32 +19,28 @@ const initialForm = {
   default: false,
 };
 
-export default function AddressFormDialog({
-  open,
+function getInitialForm(editingAddress) {
+  if (!editingAddress) {
+    return emptyForm;
+  }
+
+  return {
+    label: editingAddress.label || "",
+    name: editingAddress.name || "",
+    phone: editingAddress.phone || "",
+    line: editingAddress.line || "",
+    default: Boolean(editingAddress.default),
+  };
+}
+
+function AddressFormContent({
   editingAddress,
+  initialValues,
   onClose,
   onSubmit,
 }) {
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState(() => initialValues);
   const [errors, setErrors] = useState({});
-
-  useEffect(() => {
-    if (!open) return;
-
-    if (editingAddress) {
-      setForm({
-        label: editingAddress.label || "",
-        name: editingAddress.name || "",
-        phone: editingAddress.phone || "",
-        line: editingAddress.line || "",
-        default: Boolean(editingAddress.default),
-      });
-    } else {
-      setForm(initialForm);
-    }
-
-    setErrors({});
-  }, [editingAddress, open]);
 
   const handleChange = (field) => (event) => {
     const value =
@@ -101,7 +97,7 @@ export default function AddressFormDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <>
       <DialogTitle>
         {editingAddress ? "Sửa địa chỉ" : "Thêm địa chỉ"}
       </DialogTitle>
@@ -165,6 +161,32 @@ export default function AddressFormDialog({
           {editingAddress ? "Lưu thay đổi" : "Thêm địa chỉ"}
         </Button>
       </DialogActions>
+    </>
+  );
+}
+
+export default function AddressFormDialog({
+  open,
+  editingAddress,
+  onClose,
+  onSubmit,
+}) {
+  if (!open) {
+    return null;
+  }
+
+  const initialValues = getInitialForm(editingAddress);
+  const formKey = editingAddress?.id || "create";
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <AddressFormContent
+        key={formKey}
+        editingAddress={editingAddress}
+        initialValues={initialValues}
+        onClose={onClose}
+        onSubmit={onSubmit}
+      />
     </Dialog>
   );
 }

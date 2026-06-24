@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button, Stack } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -69,16 +69,12 @@ export default function AdminProductsPage() {
     });
   }, [items, keyword, category, status]);
 
-  useEffect(() => {
-    const maxPage = Math.max(
-      0,
-      Math.ceil(filteredProducts.length / rowsPerPage) - 1,
-    );
+  const maxPage = Math.max(
+    0,
+    Math.ceil(filteredProducts.length / rowsPerPage) - 1,
+  );
 
-    if (page > maxPage) {
-      setPage(maxPage);
-    }
-  }, [filteredProducts.length, page, rowsPerPage]);
+  const currentPage = Math.min(page, maxPage);
 
   const handleOpenCreate = () => {
     setEditingProduct(null);
@@ -185,7 +181,7 @@ export default function AdminProductsPage() {
 
         <ProductTable
           products={filteredProducts}
-          page={page}
+          page={currentPage}
           rowsPerPage={rowsPerPage}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleRowsPerPageChange}

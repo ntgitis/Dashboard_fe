@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Button,
   Dialog,
@@ -34,8 +34,22 @@ const STATUS_OPTIONS = [
   },
 ];
 
-export default function ProductFormDialog({
-  open,
+function getInitialFormData(editingProduct) {
+  if (!editingProduct) {
+    return EMPTY_FORM;
+  }
+
+  return {
+    name: editingProduct.name || "",
+    sku: editingProduct.sku || "",
+    category: editingProduct.category || "",
+    price: editingProduct.price ?? "",
+    stock: editingProduct.stock ?? "",
+    status: editingProduct.status || "ACTIVE",
+  };
+}
+
+function ProductFormContent({
   editingProduct,
   categories = [],
   existingProducts = [],
@@ -44,27 +58,10 @@ export default function ProductFormDialog({
 }) {
   const isEditMode = Boolean(editingProduct);
 
-  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [formData, setFormData] = useState(() =>
+    getInitialFormData(editingProduct),
+  );
   const [errors, setErrors] = useState({});
-
-  useEffect(() => {
-    if (open) {
-      if (editingProduct) {
-        setFormData({
-          name: editingProduct.name || "",
-          sku: editingProduct.sku || "",
-          category: editingProduct.category || "",
-          price: editingProduct.price ?? "",
-          stock: editingProduct.stock ?? "",
-          status: editingProduct.status || "ACTIVE",
-        });
-      } else {
-        setFormData(EMPTY_FORM);
-      }
-
-      setErrors({});
-    }
-  }, [open, editingProduct]);
 
   const handleChange = (field) => (event) => {
     setFormData((prev) => ({
@@ -153,7 +150,7 @@ export default function ProductFormDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <>
       <DialogTitle>
         {isEditMode ? "Cập nhật sản phẩm" : "Thêm sản phẩm mới"}
       </DialogTitle>
@@ -248,6 +245,34 @@ export default function ProductFormDialog({
           {isEditMode ? "Lưu thay đổi" : "Thêm sản phẩm"}
         </Button>
       </DialogActions>
+    </>
+  );
+}
+
+export default function ProductFormDialog({
+  open,
+  editingProduct,
+  categories = [],
+  existingProducts = [],
+  onClose,
+  onSubmit,
+}) {
+  if (!open) {
+    return null;
+  }
+
+  const formKey = editingProduct?.id || "create";
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <ProductFormContent
+        key={formKey}
+        editingProduct={editingProduct}
+        categories={categories}
+        existingProducts={existingProducts}
+        onClose={onClose}
+        onSubmit={onSubmit}
+      />
     </Dialog>
   );
 }
