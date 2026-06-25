@@ -144,10 +144,7 @@ export default function UserOrdersPage() {
   return (
     <>
       <Stack spacing={2}>
-        <PageHeader
-          title="Đơn hàng của tôi"
-          description="Theo dõi và huỷ đơn hàng từ dữ liệu backend"
-        />
+        <PageHeader title="Đơn hàng của tôi" />
 
         {ordersQuery.isError && (
           <Alert severity="error">

@@ -77,10 +77,7 @@ export default function UserOverviewPage() {
 
   return (
     <Stack spacing={3}>
-      <PageHeader
-        title="Tổng quan"
-        description="Theo dõi nhanh đơn hàng, wishlist và địa chỉ giao hàng"
-      />
+      <PageHeader title="Tổng quan" />
 
       <Box
         sx={{

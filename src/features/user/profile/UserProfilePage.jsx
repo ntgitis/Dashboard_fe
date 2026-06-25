@@ -26,10 +26,7 @@ export default function UserProfilePage() {
 
   return (
     <Stack spacing={3}>
-      <PageHeader
-        title="Hồ sơ"
-        description="Thông tin tài khoản đăng nhập hiện tại"
-      />
+      <PageHeader title="Hồ sơ" />
 
       <Card>
         <CardContent>
@@ -90,11 +87,6 @@ export default function UserProfilePage() {
                 InputProps={{ readOnly: true }}
               />
             </Stack>
-
-            <Typography variant="body2" color="text.secondary">
-              Backend hiện chưa có API cập nhật hồ sơ cá nhân, nên màn này chỉ
-              hiển thị thông tin thật từ tài khoản đăng nhập.
-            </Typography>
           </Stack>
         </CardContent>
       </Card>

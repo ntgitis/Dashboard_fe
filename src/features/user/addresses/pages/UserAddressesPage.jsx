@@ -149,7 +149,6 @@ export default function UserAddressesPage() {
     <>
       <PageHeader
         title="Địa chỉ giao hàng"
-        description="Quản lý địa chỉ giao hàng từ backend"
         actions={
           <Button
             variant="contained"

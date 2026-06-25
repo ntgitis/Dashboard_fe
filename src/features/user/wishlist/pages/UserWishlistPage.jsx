@@ -117,7 +117,6 @@ export default function UserWishlistPage() {
     <>
       <PageHeader
         title="Yêu thích"
-        description="Quản lý sản phẩm yêu thích từ backend"
         actions={
           <Stack direction="row" spacing={1}>
             <Button

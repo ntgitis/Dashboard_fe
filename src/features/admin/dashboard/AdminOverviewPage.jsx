@@ -205,9 +205,6 @@ export default function AdminOverviewPage() {
                 <Typography variant="h6" fontWeight={700}>
                   Đơn hàng gần đây
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  6 đơn hàng mới nhất trong hệ thống
-                </Typography>
               </Box>
 
               <Button size="small" onClick={() => navigate("/admin/orders")}>
@@ -266,9 +263,6 @@ export default function AdminOverviewPage() {
               <Box>
                 <Typography variant="h6" fontWeight={700}>
                   Tồn kho thấp
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Các sản phẩm cần nhập thêm
                 </Typography>
               </Box>
 
