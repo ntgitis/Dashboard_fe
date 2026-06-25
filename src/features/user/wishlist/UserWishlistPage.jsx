@@ -14,9 +14,9 @@ import {
   removeWishlistItem,
 } from "@/services/wishlistApi";
 
-import WishlistFilter from "../components/WishlistFilter";
-import WishlistCard from "../components/WishlistCard";
-import WishlistAddDialog from "../components/WishlistAddDialog";
+import WishlistFilter from "./components/WishlistFilter";
+import WishlistCard from "./components/WishlistCard";
+import WishlistAddDialog from "./components/WishlistAddDialog";
 
 function getApiErrorMessage(error) {
   return (

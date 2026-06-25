@@ -53,7 +53,7 @@ export default function Sidebar({ role }) {
     >
       <Box sx={{ p: 2.5 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <Avatar
+          {/* <Avatar
             sx={{
               bgcolor: "primary.main",
               width: 42,
@@ -61,7 +61,7 @@ export default function Sidebar({ role }) {
             }}
           >
             <StorefrontOutlined />
-          </Avatar>
+          </Avatar> */}
 
           <Box>
             <Typography variant="h6" fontWeight={800} lineHeight={1.1}>

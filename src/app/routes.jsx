@@ -1,17 +1,17 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import LoginPage from "@/features/auth/pages/LoginPage";
+import LoginPage from "@/features/auth/LoginPage";
 
 import AdminOverviewPage from "@/features/admin/dashboard/AdminOverviewPage";
-import AdminProductsPage from "@/features/admin/products/pages/AdminProductsPage";
-import AdminOrdersPage from "@/features/admin/orders/pages/AdminOrdersPage";
-import AdminCustomersPage from "@/features/admin/customers/pages/AdminCustomersPage";
+import AdminProductsPage from "@/features/admin/products/AdminProductsPage";
+import AdminOrdersPage from "@/features/admin/orders/AdminOrdersPage";
+import AdminCustomersPage from "@/features/admin/customers/AdminCustomersPage";
 
 import UserOverviewPage from "@/features/user/dashboard/UserOverviewPage";
-import UserOrdersPage from "@/features/user/orders/pages/UserOrdersPage";
-import UserWishlistPage from "@/features/user/wishlist/pages/UserWishlistPage";
-import UserAddressesPage from "@/features/user/addresses/pages/UserAddressesPage";
+import UserOrdersPage from "@/features/user/orders/UserOrdersPage";
+import UserWishlistPage from "@/features/user/wishlist/UserWishlistPage";
+import UserAddressesPage from "@/features/user/addresses/UserAddressesPage";
 import UserProfilePage from "@/features/user/profile/UserProfilePage";
 
 import ProtectedRoute, { GuestRoute } from "./ProtectedRoute";

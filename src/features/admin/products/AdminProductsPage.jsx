@@ -14,9 +14,9 @@ import {
   updateProduct,
 } from "@/services/productApi";
 
-import ProductFilter from "../components/ProductFilter";
-import ProductTable from "../components/ProductTable";
-import ProductFormDialog from "../components/ProductFormDialog";
+import ProductFilter from "./components/ProductFilter";
+import ProductTable from "./components/ProductTable";
+import ProductFormDialog from "./components/ProductFormDialog";
 
 const DEFAULT_PAGE = 0;
 const DEFAULT_ROWS_PER_PAGE = 10;

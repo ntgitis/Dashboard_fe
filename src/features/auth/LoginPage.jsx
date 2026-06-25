@@ -110,7 +110,7 @@ export default function LoginPage() {
         <Paper sx={{ p: 4 }}>
           <Stack spacing={3}>
             <Stack spacing={1} alignItems="center">
-              {/* <StorefrontOutlinedIcon color="primary" sx={{ fontSize: 48 }} /> */}
+              <StorefrontOutlinedIcon color="primary" sx={{ fontSize: 48 }} />
 
               <Typography variant="h5">Đăng nhập hệ thống</Typography>
             </Stack>

@@ -6,9 +6,9 @@ import { useSnackbar } from "notistack";
 import { PageHeader } from "@/components/common/PageHeader";
 import { getAdminUsers, updateAdminUserRole } from "@/services/adminUserApi";
 
-import CustomerFilter from "../components/CustomerFilter";
-import CustomerTable from "../components/CustomerTable";
-import CustomerDetailDialog from "../components/CustomerDetailDialog";
+import CustomerFilter from "./components/CustomerFilter";
+import CustomerTable from "./components/CustomerTable";
+import CustomerDetailDialog from "./components/CustomerDetailDialog";
 
 const DEFAULT_PAGE = 0;
 const DEFAULT_ROWS_PER_PAGE = 10;

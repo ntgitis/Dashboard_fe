@@ -7,9 +7,9 @@ import { PageHeader } from "@/components/common/PageHeader";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { cancelMyOrder, getMyOrders } from "@/services/userOrderApi";
 
-import UserOrderFilter from "../components/UserOrderFilter";
-import UserOrderTable from "../components/UserOrderTable";
-import UserOrderDetailDialog from "../components/UserOrderDetailDialog";
+import UserOrderFilter from "./components/UserOrderFilter";
+import UserOrderTable from "./components/UserOrderTable";
+import UserOrderDetailDialog from "./components/UserOrderDetailDialog";
 
 const DEFAULT_PAGE = 0;
 const DEFAULT_ROWS_PER_PAGE = 10;
