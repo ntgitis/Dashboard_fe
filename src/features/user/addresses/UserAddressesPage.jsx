@@ -14,8 +14,8 @@ import {
   updateMyAddress,
 } from "@/services/addressApi";
 
-import AddressCard from "../components/AddressCard";
-import AddressFormDialog from "../components/AddressFormDialog";
+import AddressCard from "./components/AddressCard";
+import AddressFormDialog from "./components/AddressFormDialog";
 
 function getApiErrorMessage(error) {
   return (

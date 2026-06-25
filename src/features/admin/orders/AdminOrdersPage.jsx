@@ -6,9 +6,9 @@ import { useSnackbar } from "notistack";
 import { PageHeader } from "@/components/common/PageHeader";
 import { getAdminOrders, updateAdminOrderStatus } from "@/services/orderApi";
 
-import OrderFilter from "../components/OrderFilter";
-import OrderTable from "../components/OrderTable";
-import OrderDetailDialog from "../components/OrderDetailDialog";
+import OrderFilter from "./components/OrderFilter";
+import OrderTable from "./components/OrderTable";
+import OrderDetailDialog from "./components/OrderDetailDialog";
 
 const DEFAULT_PAGE = 0;
 const DEFAULT_ROWS_PER_PAGE = 10;
